@@ -1,0 +1,11 @@
+{
+  "id": "j1-short-10cm",
+  "changes": [
+    {
+      "link": "j1_link",
+      "method": "remove_middle",
+      "shorten_m": 0.1,
+      "cut_center_m": 0.21
+    }
+  ]
+}

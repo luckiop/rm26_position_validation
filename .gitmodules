@@ -1,0 +1,4 @@
+[submodule "rm_tech_core_trajectory_solve"]
+	path = rm_tech_core_trajectory_solve
+	url = https://github.com/HKUSTGZ-ROBOMASTER-PNX/rm_tech_core_trajectory_solve.git
+	branch = feature/position-validation

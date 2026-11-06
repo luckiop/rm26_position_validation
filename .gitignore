@@ -1,0 +1,12 @@
+.work/
+build/
+install/
+log/
+artifacts/
+MUJOCO_LOG.TXT
+__pycache__/
+*.pyc
+build-master/
+install-master/
+build-integrated/
+install-integrated/

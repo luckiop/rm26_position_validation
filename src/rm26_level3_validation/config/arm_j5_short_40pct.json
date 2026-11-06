@@ -1,0 +1,10 @@
+{
+  "id": "j5-short-40pct",
+  "changes": [
+    {
+      "link": "j5_link",
+      "method": "remove_middle",
+      "shorten_fraction": 0.4
+    }
+  ]
+}
