@@ -42,3 +42,29 @@ for invalid in ('0', '1.6', 'nan'):
                              '--j1-max-from-vertical-rad='+invalid], capture_output=True)
     assert result.returncode != 0
 print('J1 horizontal boundaries and tightened limits verified')
+
+# RM27 shoulder is joint_2, rotating about -Y; its child offset comes from CAD.
+rm27 = ET.parse(root / 'src/rm27_heavy_arm_demo/model/mjcf/rm27_heavy_arm_demo.xml')
+dx, dy, dz = map(float, rm27.find('.//body[@name="link_3"]').get('pos').split())
+for maximum in (math.pi/2, 1.2):
+    result = subprocess.run([sys.argv[1], '--check-j1-limits', '--arm-family=rm27',
+                             '--j1-max-from-vertical-rad='+str(maximum)],
+                            capture_output=True, text=True, check=True)
+    lo, hi = json.loads(result.stdout)
+    upright = math.atan2(dx, dz)
+    assert abs((lo+hi)/2-upright) < 1e-12
+    assert abs((hi-lo)/2-maximum) < 1e-12
+    def rm27_height(q):
+        return dx*math.sin(q) + dz*math.cos(q)
+    for i in range(1001):
+        assert rm27_height(lo+(hi-lo)*i/1000) >= -1e-12
+    if maximum == math.pi/2:
+        assert rm27_height(lo-0.001) < 0
+        assert rm27_height(hi+0.001) < 0
+    else:
+        assert rm27_height(lo) > 0 and rm27_height(hi) > 0
+for invalid in ('0', '1.6', 'nan'):
+    result = subprocess.run([sys.argv[1], '--check-j1-limits', '--arm-family=rm27',
+                             '--j1-max-from-vertical-rad='+invalid], capture_output=True)
+    assert result.returncode != 0
+print('RM27 shoulder horizontal boundaries and tightened limits verified')

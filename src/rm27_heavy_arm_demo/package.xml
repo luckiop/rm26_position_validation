@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>rm27_heavy_arm_demo</name>
+  <version>1.0.0</version>
+  <description>CAD zero-pose description of a seven-axis heavy arm with a fixed-opening screw gripper, including convex MuJoCo collision geometry.</description>
+  <maintainer email="183842220@qq.com">lqx</maintainer>
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <license>TODO</license>
+
+  <depend>ament_index_cpp</depend>
+  <depend>tech_core_planner</depend>
+
+  <exec_depend>ament_index_python</exec_depend>
+  <exec_depend>launch</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>joint_state_publisher</exec_depend>
+  <exec_depend>joint_state_publisher_gui</exec_depend>
+  <exec_depend>rviz2</exec_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+
+</package>

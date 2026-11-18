@@ -2,17 +2,25 @@
 <package format="3">
   <name>rm26_level3_validation</name>
   <version>0.1.0</version>
-  <description>固定基座 RM26 三级科技核心任务批量验证。</description>
+  <description>固定基座 RM26 / RM27 三级科技核心任务批量验证。</description>
   <maintainer email="183842220@qq.com">lqx</maintainer>
   <license>TODO: License declaration</license>
   <buildtool_depend>cmake</buildtool_depend>
   <depend>tech_core_planner</depend>
   <depend>mujoco</depend>
   <depend>rm26_engineering_arm_demo</depend>
+  <depend>rm27_heavy_arm_demo</depend>
   <exec_depend>python3</exec_depend>
   <exec_depend>python3-tk</exec_depend>
   <exec_depend>python3-numpy</exec_depend>
   <exec_depend>python3-scipy</exec_depend>
+  <exec_depend>ament_index_python</exec_depend>
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>rviz2</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>visualization_msgs</exec_depend>
   <test_depend>python3</test_depend>
   <export><build_type>cmake</build_type></export>
 </package>

@@ -1,0 +1,218 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mujoco model="rm27_heavy_arm_demo">
+  <!-- Meshes and inertials are already in metres/kg. The CAD gripper opening is fixed. -->
+  <compiler angle="radian" meshdir="../meshes" autolimits="true" inertiafromgeom="false" balanceinertia="false" />
+  <option timestep="0.002" integrator="implicitfast" gravity="0 0 -9.81" cone="elliptic" />
+  <visual>
+    <global offwidth="1600" offheight="1200" />
+    <headlight diffuse=".7 .7 .7" ambient=".35 .35 .35" specular=".2 .2 .2" />
+  </visual>
+  <statistic center=".18 0 .32" extent="0.9" />
+  <default>
+    <geom friction=".7 .01 .001" solref=".01 1" solimp=".9 .95 .001" condim="3" />
+    <default class="visual">
+      <geom type="mesh" contype="0" conaffinity="0" group="2" density="0" />
+    </default>
+    <default class="collision">
+      <geom type="mesh" contype="1" conaffinity="1" group="3" rgba=".15 .7 .9 .25" density="0" />
+    </default>
+  </default>
+  <asset>
+    <mesh name="base_link_v0" file="visual/base_link_0.stl" />
+    <mesh name="base_link_base" file="collision/base_link_base.obj" />
+    <mesh name="link_1_v0" file="visual/link_1_0.stl" />
+    <mesh name="link_1_v1" file="visual/link_1_1.stl" />
+    <mesh name="link_1_v2" file="visual/link_1_2.stl" />
+    <mesh name="link_1_tab" file="collision/link_1_tab.obj" />
+    <mesh name="link_1_base_0" file="collision/link_1_base_0.obj" />
+    <mesh name="link_1_base_1" file="collision/link_1_base_1.obj" />
+    <mesh name="link_1_shoulder_0" file="collision/link_1_shoulder_0.obj" />
+    <mesh name="link_1_shoulder_1" file="collision/link_1_shoulder_1.obj" />
+    <mesh name="link_1_shoulder_2" file="collision/link_1_shoulder_2.obj" />
+    <mesh name="link_2_v0" file="visual/link_2_0.stl" />
+    <mesh name="link_2_v1" file="visual/link_2_1.stl" />
+    <mesh name="link_2_v2" file="visual/link_2_2.stl" />
+    <mesh name="link_2_v3" file="visual/link_2_3.stl" />
+    <mesh name="link_2_rod_0" file="collision/link_2_rod_0.obj" />
+    <mesh name="link_2_rod_1" file="collision/link_2_rod_1.obj" />
+    <mesh name="link_2_clamp_0" file="collision/link_2_clamp_0.obj" />
+    <mesh name="link_2_clamp_1" file="collision/link_2_clamp_1.obj" />
+    <mesh name="link_2_clamp_2" file="collision/link_2_clamp_2.obj" />
+    <mesh name="link_2_clamp_3" file="collision/link_2_clamp_3.obj" />
+    <mesh name="link_2_clamp_4" file="collision/link_2_clamp_4.obj" />
+    <mesh name="link_2_clamp_5" file="collision/link_2_clamp_5.obj" />
+    <mesh name="link_2_plate_0" file="collision/link_2_plate_0.obj" />
+    <mesh name="link_2_plate_1" file="collision/link_2_plate_1.obj" />
+    <mesh name="link_2_motor" file="collision/link_2_motor.obj" />
+    <mesh name="link_3_v0" file="visual/link_3_0.stl" />
+    <mesh name="link_3_v1" file="visual/link_3_1.stl" />
+    <mesh name="link_3_v2" file="visual/link_3_2.stl" />
+    <mesh name="link_3_plate" file="collision/link_3_plate.obj" />
+    <mesh name="link_3_shelf" file="collision/link_3_shelf.obj" />
+    <mesh name="link_3_end_plate" file="collision/link_3_end_plate.obj" />
+    <mesh name="link_3_tab" file="collision/link_3_tab.obj" />
+    <mesh name="link_3_motor" file="collision/link_3_motor.obj" />
+    <mesh name="link_3_connector" file="collision/link_3_connector.obj" />
+    <mesh name="link_4_v0" file="visual/link_4_0.stl" />
+    <mesh name="link_4_v1" file="visual/link_4_1.stl" />
+    <mesh name="link_4_flange" file="collision/link_4_flange.obj" />
+    <mesh name="link_4_plate" file="collision/link_4_plate.obj" />
+    <mesh name="link_4_motor" file="collision/link_4_motor.obj" />
+    <mesh name="link_5_v0" file="visual/link_5_0_rounded.obj" />
+    <mesh name="link_5_v1" file="visual/link_5_1.stl" />
+    <mesh name="link_5_plate" file="collision/link_5_plate.obj" />
+    <mesh name="link_5_motor" file="collision/link_5_motor.obj" />
+    <mesh name="link_6_v0" file="visual/link_6_0.stl" />
+    <mesh name="link_6_v1" file="visual/link_6_1.stl" />
+    <mesh name="link_6_wrist" file="collision/link_6_wrist.obj" />
+    <mesh name="link_7_v0" file="visual/link_7_0.stl" />
+    <mesh name="link_7_v1" file="visual/link_7_1.stl" />
+    <mesh name="link_7_v2" file="visual/link_7_2.stl" />
+    <mesh name="link_7_v3" file="visual/link_7_3.stl" />
+    <mesh name="link_7_v4" file="visual/link_7_4.stl" />
+    <mesh name="link_7_motor" file="collision/link_7_motor.obj" />
+    <mesh name="link_7_rear_plate" file="collision/link_7_rear_plate.obj" />
+    <mesh name="link_7_rail_0" file="collision/link_7_rail_0.obj" />
+    <mesh name="link_7_rail_1" file="collision/link_7_rail_1.obj" />
+    <mesh name="link_7_front_plate" file="collision/link_7_front_plate.obj" />
+    <mesh name="link_7_hinge_0" file="collision/link_7_hinge_0.obj" />
+    <mesh name="link_7_hinge_1" file="collision/link_7_hinge_1.obj" />
+    <mesh name="link_7_drive" file="collision/link_7_drive.obj" />
+    <mesh name="link_7_finger_0" file="collision/link_7_finger_0.obj" />
+    <mesh name="link_7_finger_1" file="collision/link_7_finger_1.obj" />
+    <mesh name="link_7_finger_2" file="collision/link_7_finger_2.obj" />
+    <mesh name="link_7_finger_3" file="collision/link_7_finger_3.obj" />
+    <mesh name="link_7_tie_0" file="collision/link_7_tie_0.obj" />
+    <mesh name="link_7_tie_1" file="collision/link_7_tie_1.obj" />
+    <mesh name="link_7_tie_2" file="collision/link_7_tie_2.obj" />
+    <mesh name="link_7_tie_3" file="collision/link_7_tie_3.obj" />
+    <mesh name="link_7_linkage_0" file="collision/link_7_linkage_0.obj" />
+    <mesh name="link_7_linkage_1" file="collision/link_7_linkage_1.obj" />
+  </asset>
+  <worldbody>
+    <light name="key_light" pos="1 -1 2" dir="-1 1 -2" diffuse=".7 .7 .7" />
+    <body name="base_link" pos="0 0 0" gravcomp="1">
+      <inertial pos="0 2.08166817117e-17 0.00721162816308" mass="0.0273906667007" fullinertia="1.87112335349e-05 1.87112335349e-05 3.70975032261e-05 3.01611527169e-22 -2.76340463466e-23 -6.31062363056e-20" />
+      <geom name="base_link_v0" mesh="base_link_v0" class="visual" rgba="0.894 0.894 0.894 1" />
+      <geom name="base_link_c_base" mesh="base_link_base" class="collision" />
+      <body name="link_1" pos="0 2.54483933926e-15 0.0110000007682" gravcomp="1">
+        <inertial pos="3.2253722532e-06 0.01204196268 0.0587538840792" mass="0.414326684458" fullinertia="0.000473901232994 0.00060815511192 0.00033589586211 -6.77980558181e-07 1.03733387028e-06 -1.26547999938e-05" />
+        <joint name="joint_1" type="hinge" axis="0 0 1" limited="true" range="-6.283185307179586 6.283185307179586" damping="2" armature="0.02" />
+        <geom name="link_1_v0" mesh="link_1_v0" class="visual" rgba="0.867 0.91 1 1" />
+        <geom name="link_1_v1" mesh="link_1_v1" class="visual" rgba="0.894 0.894 0.894 1" />
+        <geom name="link_1_v2" mesh="link_1_v2" class="visual" rgba="1 1 1 1" />
+        <geom name="link_1_c_tab" mesh="link_1_tab" class="collision" />
+        <geom name="link_1_c_base_0" mesh="link_1_base_0" class="collision" />
+        <geom name="link_1_c_base_1" mesh="link_1_base_1" class="collision" />
+        <geom name="link_1_c_shoulder_0" mesh="link_1_shoulder_0" class="collision" />
+        <geom name="link_1_c_shoulder_1" mesh="link_1_shoulder_1" class="collision" />
+        <geom name="link_1_c_shoulder_2" mesh="link_1_shoulder_2" class="collision" />
+        <body name="link_2" pos="2.22044604925e-16 0.0397 0.065" gravcomp="1">
+          <inertial pos="-0.0201796573725 -0.0157731190672 0.296577148445" mass="0.352283402494" fullinertia="0.0119385214488 0.0120361634917 0.000234203635247 1.3374728951e-05 -0.000493354410029 0.00024358539942" />
+          <joint name="joint_2" type="hinge" axis="0 -1 0" limited="true" range="-6.283185307179586 6.283185307179586" damping="2" armature="0.02" />
+          <geom name="link_2_v0" mesh="link_2_v0" class="visual" rgba="0.439 0.439 0.439 1" />
+          <geom name="link_2_v1" mesh="link_2_v1" class="visual" rgba="0.894 0.894 0.894 1" />
+          <geom name="link_2_v2" mesh="link_2_v2" class="visual" rgba="0.867 0.91 1 1" />
+          <geom name="link_2_v3" mesh="link_2_v3" class="visual" rgba="1 1 1 1" />
+          <geom name="link_2_c_rod_0" mesh="link_2_rod_0" class="collision" />
+          <geom name="link_2_c_rod_1" mesh="link_2_rod_1" class="collision" />
+          <geom name="link_2_c_clamp_0" mesh="link_2_clamp_0" class="collision" />
+          <geom name="link_2_c_clamp_1" mesh="link_2_clamp_1" class="collision" />
+          <geom name="link_2_c_clamp_2" mesh="link_2_clamp_2" class="collision" />
+          <geom name="link_2_c_clamp_3" mesh="link_2_clamp_3" class="collision" />
+          <geom name="link_2_c_clamp_4" mesh="link_2_clamp_4" class="collision" />
+          <geom name="link_2_c_clamp_5" mesh="link_2_clamp_5" class="collision" />
+          <geom name="link_2_c_plate_0" mesh="link_2_plate_0" class="collision" />
+          <geom name="link_2_c_plate_1" mesh="link_2_plate_1" class="collision" />
+          <geom name="link_2_c_motor" mesh="link_2_motor" class="collision" />
+          <body name="link_3" pos="-0.00395496976391 0.001 0.480181722278" gravcomp="1">
+            <inertial pos="0.0798342779182 -0.0216791461594 0.0473718740477" mass="0.204575094364" fullinertia="0.000231866428471 0.000283073992859 0.000247154630103 1.62863562332e-05 1.95238366622e-05 -1.95197074745e-05" />
+            <joint name="joint_3" type="hinge" axis="0 -1 0" limited="true" range="-6.283185307179586 6.283185307179586" damping="1" armature="0.01" />
+            <geom name="link_3_v0" mesh="link_3_v0" class="visual" rgba="0.894 0.894 0.894 1" />
+            <geom name="link_3_v1" mesh="link_3_v1" class="visual" rgba="0.867 0.91 1 1" />
+            <geom name="link_3_v2" mesh="link_3_v2" class="visual" rgba="1 1 1 1" />
+            <geom name="link_3_c_plate" mesh="link_3_plate" class="collision" />
+            <geom name="link_3_c_shelf" mesh="link_3_shelf" class="collision" />
+            <geom name="link_3_c_end_plate" mesh="link_3_end_plate" class="collision" />
+            <geom name="link_3_c_tab" mesh="link_3_tab" class="collision" />
+            <geom name="link_3_c_motor" mesh="link_3_motor" class="collision" />
+            <geom name="link_3_c_connector" mesh="link_3_connector" class="collision" />
+            <body name="link_4" pos="0.108875913402 -0.031 0.0401726612783" gravcomp="1">
+              <inertial pos="0.0563848744065 0.0024206960514 -7.58143265313e-05" mass="0.136156911146" fullinertia="6.21039057708e-05 0.000101725535768 9.96657538531e-05 1.57908277957e-05 5.68371843904e-08 -3.1545311833e-07" />
+              <joint name="joint_4" type="hinge" axis="1 0 0" limited="true" range="-6.283185307179586 6.283185307179586" damping="0.5" armature="0.005" />
+              <geom name="link_4_v0" mesh="link_4_v0" class="visual" rgba="0.894 0.894 0.894 1" />
+              <geom name="link_4_v1" mesh="link_4_v1" class="visual" rgba="1 1 1 1" />
+              <geom name="link_4_c_flange" mesh="link_4_flange" class="collision" />
+              <geom name="link_4_c_plate" mesh="link_4_plate" class="collision" />
+              <geom name="link_4_c_motor" mesh="link_4_motor" class="collision" />
+              <body name="link_5" pos="0.063 0.024125 -1.11022302463e-16" gravcomp="1">
+                <inertial pos="0.0527732841383 -0.0131266555543 -0.0304486530353" mass="0.127921023499" fullinertia="7.3654398857e-05 0.000133250909354 0.000108970211481 -1.86037585637e-06 3.05596292282e-05 1.1958660818e-06" />
+                <joint name="joint_5" type="hinge" axis="0 -1 0" limited="true" range="-6.283185307179586 6.283185307179586" damping="0.5" armature="0.005" />
+                <geom name="link_5_v0" mesh="link_5_v0" class="visual" rgba="0.894 0.894 0.894 1" />
+                <geom name="link_5_v1" mesh="link_5_v1" class="visual" rgba="1 1 1 1" />
+                <geom name="link_5_c_plate" mesh="link_5_plate" class="collision" />
+                <geom name="link_5_c_motor" mesh="link_5_motor" class="collision" />
+                <body name="link_6" pos="0.12124355653 -0.028 -0.07" gravcomp="1">
+                  <inertial pos="-0.00518088687919 4.39241859388e-05 5.88842842704e-05" mass="0.135563107326" fullinertia="6.26712925842e-05 6.24768996852e-05 6.2322716237e-05 1.24993587649e-07 2.21830600979e-07 -8.90928834658e-08" />
+                  <joint name="joint_6" type="hinge" axis="0 -1 0" limited="true" range="-6.283185307179586 6.283185307179586" damping="0.3" armature="0.003" />
+                  <geom name="link_6_v0" mesh="link_6_v0" class="visual" rgba="0.894 0.894 0.894 1" />
+                  <geom name="link_6_v1" mesh="link_6_v1" class="visual" rgba="1 1 1 1" />
+                  <geom name="link_6_c_wrist" mesh="link_6_wrist" class="collision" />
+                  <body name="link_7" pos="0.0212499439429 0 1.11022302463e-16" gravcomp="1">
+                    <inertial pos="0.0681370435202 -0.00106727351733 -7.70254465178e-06" mass="0.464405307749" fullinertia="0.000544334081064 0.000888823377148 0.00113194615708 5.41872390866e-06 2.61384863244e-08 -2.43376302812e-10" />
+                    <joint name="joint_7" type="hinge" axis="1 0 0" limited="true" range="-6.283185307179586 6.283185307179586" damping="0.3" armature="0.003" />
+                    <geom name="link_7_v0" mesh="link_7_v0" class="visual" rgba="1 1 1 1" />
+                    <geom name="link_7_v1" mesh="link_7_v1" class="visual" rgba="0.867 0.91 1 1" />
+                    <geom name="link_7_v2" mesh="link_7_v2" class="visual" rgba="0.894 0.894 0.894 1" />
+                    <geom name="link_7_v3" mesh="link_7_v3" class="visual" rgba="1 0.957 0.886 1" />
+                    <geom name="link_7_v4" mesh="link_7_v4" class="visual" rgba="0.839 0.467 0.369 1" />
+                    <geom name="link_7_c_motor" mesh="link_7_motor" class="collision" />
+                    <geom name="link_7_c_rear_plate" mesh="link_7_rear_plate" class="collision" />
+                    <geom name="link_7_c_rail_0" mesh="link_7_rail_0" class="collision" />
+                    <geom name="link_7_c_rail_1" mesh="link_7_rail_1" class="collision" />
+                    <geom name="link_7_c_front_plate" mesh="link_7_front_plate" class="collision" />
+                    <geom name="link_7_c_hinge_0" mesh="link_7_hinge_0" class="collision" />
+                    <geom name="link_7_c_hinge_1" mesh="link_7_hinge_1" class="collision" />
+                    <geom name="link_7_c_drive" mesh="link_7_drive" class="collision" />
+                    <geom name="link_7_c_finger_0" mesh="link_7_finger_0" class="collision" />
+                    <geom name="link_7_c_finger_1" mesh="link_7_finger_1" class="collision" />
+                    <geom name="link_7_c_finger_2" mesh="link_7_finger_2" class="collision" />
+                    <geom name="link_7_c_finger_3" mesh="link_7_finger_3" class="collision" />
+                    <geom name="link_7_c_tie_0" mesh="link_7_tie_0" class="collision" />
+                    <geom name="link_7_c_tie_1" mesh="link_7_tie_1" class="collision" />
+                    <geom name="link_7_c_tie_2" mesh="link_7_tie_2" class="collision" />
+                    <geom name="link_7_c_tie_3" mesh="link_7_tie_3" class="collision" />
+                    <geom name="link_7_c_linkage_0" mesh="link_7_linkage_0" class="collision" />
+                    <geom name="link_7_c_linkage_1" mesh="link_7_linkage_1" class="collision" />
+                    <site name="tool0" pos="0.176143757679 0 0" size="0.004" rgba="1 .3 .1 1" group="4" />
+                  </body>
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+    </body>
+  </worldbody>
+  <contact>
+    <exclude name="adjacent_joint_1" body1="base_link" body2="link_1" />
+    <exclude name="adjacent_joint_2" body1="link_1" body2="link_2" />
+    <exclude name="adjacent_joint_3" body1="link_2" body2="link_3" />
+    <exclude name="adjacent_joint_4" body1="link_3" body2="link_4" />
+    <exclude name="adjacent_joint_5" body1="link_4" body2="link_5" />
+    <exclude name="adjacent_joint_6" body1="link_5" body2="link_6" />
+    <exclude name="adjacent_joint_7" body1="link_6" body2="link_7" />
+  </contact>
+  <actuator>
+    <position name="joint_1_position" joint="joint_1" kp="800" kv="40" ctrllimited="false" forcelimited="false" />
+    <position name="joint_2_position" joint="joint_2" kp="800" kv="40" ctrllimited="false" forcelimited="false" />
+    <position name="joint_3_position" joint="joint_3" kp="500" kv="25" ctrllimited="false" forcelimited="false" />
+    <position name="joint_4_position" joint="joint_4" kp="250" kv="10" ctrllimited="false" forcelimited="false" />
+    <position name="joint_5_position" joint="joint_5" kp="250" kv="10" ctrllimited="false" forcelimited="false" />
+    <position name="joint_6_position" joint="joint_6" kp="150" kv="6" ctrllimited="false" forcelimited="false" />
+    <position name="joint_7_position" joint="joint_7" kp="150" kv="6" ctrllimited="false" forcelimited="false" />
+  </actuator>
+  <keyframe>
+    <key name="zero" qpos="0 0 0 0 0 0 0" ctrl="0 0 0 0 0 0 0" />
+  </keyframe>
+</mujoco>

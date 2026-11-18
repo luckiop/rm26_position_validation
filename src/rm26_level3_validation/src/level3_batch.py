@@ -66,6 +66,8 @@ def check_config(config):
         if lower > upper:
             raise ValueError(f'{field}: lower bound exceeds upper bound')
     finite_vector(config.get('parking_offset_world_m', [0.0, 0.0, 0.0]), 3, 'parking_offset_world_m')
+    if not isinstance(config.get('adaptive_y_parking', False), bool):
+        raise ValueError('adaptive_y_parking must be a boolean')
     for option in ('check_self_collision', 'check_gripper_pillar_collision'):
         if not isinstance(config.get(option, True), bool):
             raise ValueError(f'{option} must be a boolean')
@@ -162,6 +164,8 @@ def case_command(executable, case, timeout, directory, gui=False, assembly=None)
         command.append('--arm-model-path=' + case['arm_model']['model_path'])
         if case['arm_model'].get('attach_link', 'j6_link') != 'j6_link':
             command.append('--arm-attach-link=' + case['arm_model']['attach_link'])
+        if case['arm_model'].get('model_family', 'rm26') != 'rm26':
+            command.append('--arm-family=' + case['arm_model']['model_family'])
     return command
 
 
@@ -194,6 +198,7 @@ def sample_cases(config):
         cases.append({'id': f'case_{index:04d}', 'quick': index in quick,
                       'core_in_assembly': dict(zip(FIELDS, values)),
                       **({'arm_model': config['arm_model']} if config.get('arm_model') else {}),
+                      **({'start_joints_rad': config['start_joints_rad']} if 'start_joints_rad' in config else {}),
                       'parking_offset_world_m': list(parking), 'parking_yaw_world_rad': yaw,
                       'j1_max_from_vertical_rad': config.get('j1_max_from_vertical_rad', math.pi / 2),
                       'check_self_collision': config.get('check_self_collision', True),
@@ -202,7 +207,7 @@ def sample_cases(config):
                       'core_in_base': core_in_base(field_pose, parking, yaw)})
     positions = parking_positions(config)
     if len(positions) == 1:
-        return cases
+        return adapt_y_parking(config, cases)
     expanded = []
     for position in positions:
         for case in cases:
@@ -212,7 +217,19 @@ def sample_cases(config):
                              'parking_grid_index': position['grid_index'],
                              'parking_offset_world_m': list(parking),
                              'core_in_base': core_in_base(case['core_in_world'], parking, yaw)})
-    return expanded
+    return adapt_y_parking(config, expanded)
+
+
+def adapt_y_parking(config, cases):
+    """Follow core field-world Y in metres, retaining X/Z and parking yaw."""
+    if config.get('adaptive_y_parking', False):
+        for case in cases:
+            parking = case['parking_offset_world_m']
+            parking[1] += case['core_in_world']['position_m'][1]
+            finite_vector(parking, 3, 'adaptive parking offset')
+            case['core_in_base'] = core_in_base(
+                case['core_in_world'], parking, case['parking_yaw_world_rad'])
+    return cases
 
 
 def annotate_arm_result(result, case):
@@ -224,6 +241,16 @@ def annotate_arm_result(result, case):
             raise ValueError('Solver did not confirm requested arm model path')
         if reported is not None and not loaded:
             raise ValueError('Solver loaded a different arm model')
+        if reported is not None and result.get('arm_model_family', 'rm26') != identity.get('model_family', 'rm26'):
+            raise ValueError('Solver used a different arm model family')
+        if reported is not None and 'start_joints_rad' in case:
+            expected = case['start_joints_rad']
+            actual = result.get('start_joints_rad')
+            if (not isinstance(actual, list) or len(actual) != len(expected) or
+                    any(not isinstance(a, (int, float)) or not math.isfinite(a) or
+                        not math.isclose(a, b, rel_tol=0.0, abs_tol=1e-10)
+                        for a, b in zip(actual, expected))):
+                raise ValueError('Solver used a different initial joint configuration')
         if identity.get('attach_link', 'j6_link') != 'j6_link' and reported is not None:
             if result.get('arm_attach_link') != identity['attach_link']:
                 raise ValueError('Solver used a different terminal mounting body')
@@ -410,7 +437,7 @@ def failure_reason(result):
             return 'unit'
         if name.startswith('tech_core_planner_core/'):
             return 'core'
-        if re.match(r'(?:.*/)?j[0-6]_link(?:_|$)', name):
+        if re.match(r'(?:.*/)?(?:j[0-6]_link|link_[1-7])(?:_|$)', name):
             return 'arm'
         return 'other'
     for a, b in pairs:
@@ -1032,7 +1059,7 @@ def main():
     sub = parser.add_subparsers(dest='command', required=True)
     run = sub.add_parser('run', help='批量规划')
     run.add_argument('--config', type=Path, default=installed_config())
-    run.add_argument('--arm-variant', type=Path, help='机械臂变体JSON，覆盖配置中的arm_variant')
+    run.add_argument('--arm-variant', type=Path, help='机械臂选择/变体JSON，覆盖配置中的arm_variant')
     run.add_argument('--output', type=Path, required=True, help='必须不存在的新目录')
     run.add_argument('--set', choices=['quick', 'full'], default='full')
     run.add_argument('--workers', type=int, default=1)
@@ -1055,19 +1082,29 @@ def main():
         variant_label(variant)
         if args.workers < 1:
             raise ValueError('workers must be positive')
-        source = subprocess.run([str(executable), '--print-arm-model-path'], capture_output=True, text=True, check=True).stdout.strip()
+        family = variant.get('model_family', 'rm26')
+        family_option = '--arm-family=' + family
+        arm_config = json.loads(subprocess.run([str(executable), '--print-arm-config', family_option,
+                                '--j1-max-from-vertical-rad=' + str(config.get('j1_max_from_vertical_rad', math.pi / 2))],
+                               capture_output=True, text=True, check=True).stdout)
+        source = arm_config['model_path']
+        config['start_joints_rad'] = arm_config['start_joints_rad']
         args.output = args.output.resolve()
         args.output.mkdir(parents=True, exist_ok=False)
         config['arm_model'] = generate_arm(Path(source), variant, args.output / 'arm_model')
         verify_arm(config['arm_model'])
-        subprocess.run([str(executable), '--check-j1-limits', '--arm-model-path=' + config['arm_model']['model_path']],
+        subprocess.run([str(executable), '--check-j1-limits', family_option,
+                        '--arm-model-path=' + config['arm_model']['model_path'],
+                        '--j1-max-from-vertical-rad=' + str(config.get('j1_max_from_vertical_rad', math.pi / 2))],
                        capture_output=True, text=True, check=True)
         print('机械臂：' + json.dumps(config['arm_model'], ensure_ascii=False), flush=True)
         cases = sample_cases(config)
         cases = [case for case in cases if args.set == 'full' or case['quick']]
         if args.workers < 1:
             raise ValueError('workers must be positive')
-        check = subprocess.run([str(executable), '--check-resources'], capture_output=True, text=True, check=False)
+        check = subprocess.run([str(executable), '--check-resources', family_option,
+                                '--arm-model-path=' + config['arm_model']['model_path']],
+                               capture_output=True, text=True, check=False)
         if check.returncode:
             raise RuntimeError(check.stderr.strip())
         write_json(args.output / 'config.json', config)
@@ -1080,7 +1117,7 @@ def main():
                       'check_self_collision': config.get('check_self_collision', True),
                    'check_gripper_pillar_collision': config.get('check_gripper_pillar_collision', True),
                    'parking_positions': parking_positions(config),
-                   'start_joints_rad': [0.0] * 7, 'twist_mode': 'RequiredRange',
+                   'start_joints_rad': config['start_joints_rad'], 'twist_mode': 'RequiredRange',
                    'twist_range_rad': [-math.pi/2, math.pi/2], 'station_front_plane_filter': False,
                    'velocity_rad_s': 0.5, 'acceleration_rad_s2': 1.0,
                    'disclaimer': 'fixed grasp and mount are simulation assumptions; finite-budget failure is not proof of unreachable'})

@@ -15,15 +15,52 @@ spec.loader.exec_module(batch)
 
 
 class BatchTest(unittest.TestCase):
+    def test_start_joint_comparison_tolerates_only_roundoff(self):
+        identity = {'model_path': '/tmp/arm.xml', 'model_family': 'rm27', 'attach_link': 'link_7'}
+        case = {'arm_model': identity, 'start_joints_rad': [0, 1.0189637841025003]}
+        result = {'arm_model_path': '/tmp/arm.xml', 'arm_model_family': 'rm27',
+                  'arm_attach_link': 'link_7', 'start_joints_rad': [0, 1.0189637841024972]}
+        batch.annotate_arm_result(result.copy(), case)
+        for invalid in ([0, 1.019], [0], [0, float('nan')], None):
+            with self.assertRaises(ValueError):
+                batch.annotate_arm_result({**result, 'start_joints_rad': invalid}, case)
+
     def setUp(self):
         self.config = json.loads((ROOT / 'config/default.json').read_text())
         # Sampling contracts must be independent of the user's run size.
+        self.config['adaptive_y_parking'] = False
         self.config.pop('parking_grid', None)
         self.config['samples'] = 100
         self.config['quick_samples'] = 10
         self.config.pop('parking_yaw_world_rad', None)
         self.config['check_self_collision'] = True
         self.config['check_gripper_pillar_collision'] = True
+
+    def test_adaptive_y_with_parking_yaw_and_grid(self):
+        self.config['assembly_in_base']['rpy_rad'] = [0.2, -0.3, 1.1]
+        self.config['parking_yaw_world_rad'] = -math.pi / 2
+        for count in (1, 4, 9):
+            self.config['parking_grid'] = {
+                'positions': count, 'step_x_m': 0.1, 'step_y_m': 0.2}
+            self.config['adaptive_y_parking'] = False
+            original = batch.sample_cases(self.config)
+            self.config['adaptive_y_parking'] = True
+            adaptive = batch.sample_cases(self.config)
+            for before, after in zip(original, adaptive):
+                self.assertEqual(before['core_in_world'], after['core_in_world'])
+                parking = after['parking_offset_world_m']
+                self.assertAlmostEqual(parking[1], before['parking_offset_world_m'][1] +
+                                       after['core_in_world']['position_m'][1])
+                for axis in (0, 2):
+                    self.assertEqual(parking[axis], before['parking_offset_world_m'][axis])
+                restored = batch.rotate(batch.rotation_rpy(0, 0, -math.pi / 2),
+                                        after['core_in_base']['position_m'])
+                for axis in range(3):
+                    self.assertAlmostEqual(restored[axis] + parking[axis],
+                                           after['core_in_world']['position_m'][axis])
+        self.config['adaptive_y_parking'] = 'true'
+        with self.assertRaises(ValueError):
+            batch.sample_cases(self.config)
 
     def test_completed_progress_scores(self):
         for stage, score in [('Request', 0), ('Start', 0), ('TaskSetup', 0),

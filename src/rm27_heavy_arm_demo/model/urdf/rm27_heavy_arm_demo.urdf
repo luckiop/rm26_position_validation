@@ -1,0 +1,614 @@
+<?xml version='1.0' encoding='utf-8'?>
+<robot name="rm27_heavy_arm_demo">
+  <!-- Generated from config/model.json. q=0 is the supplied CAD pose. Gripper opening is fixed. -->
+  <link name="world" />
+  <joint name="base_mount" type="fixed">
+    <parent link="world" />
+    <child link="base_link" />
+    <origin xyz="0 0 0" rpy="0 0 0" />
+  </joint>
+  <link name="base_link">
+    <inertial>
+      <origin xyz="0 2.08166817117e-17 0.00721162816308" rpy="0 0 0" />
+      <mass value="0.0273906667007" />
+      <inertia ixx="1.87112335349e-05" ixy="3.01611527169e-22" ixz="-2.76340463466e-23" iyy="1.87112335349e-05" iyz="-6.31062363056e-20" izz="3.70975032261e-05" />
+    </inertial>
+    <visual name="base_link_visual_0">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/visual/base_link_0.stl" scale="1 1 1" />
+      </geometry>
+      <material name="base_link_material_0">
+        <color rgba="0.894 0.894 0.894 1" />
+      </material>
+    </visual>
+    <collision name="base_link_collision_base">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/collision/base_link_base.obj" scale="1 1 1" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="link_1">
+    <inertial>
+      <origin xyz="3.2253722532e-06 0.01204196268 0.0587538840792" rpy="0 0 0" />
+      <mass value="0.414326684458" />
+      <inertia ixx="0.000473901232994" ixy="-6.77980558181e-07" ixz="1.03733387028e-06" iyy="0.00060815511192" iyz="-1.26547999938e-05" izz="0.00033589586211" />
+    </inertial>
+    <visual name="link_1_visual_0">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/visual/link_1_0.stl" scale="1 1 1" />
+      </geometry>
+      <material name="link_1_material_0">
+        <color rgba="0.867 0.91 1 1" />
+      </material>
+    </visual>
+    <visual name="link_1_visual_1">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/visual/link_1_1.stl" scale="1 1 1" />
+      </geometry>
+      <material name="link_1_material_1">
+        <color rgba="0.894 0.894 0.894 1" />
+      </material>
+    </visual>
+    <visual name="link_1_visual_2">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/visual/link_1_2.stl" scale="1 1 1" />
+      </geometry>
+      <material name="link_1_material_2">
+        <color rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision name="link_1_collision_tab">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/collision/link_1_tab.obj" scale="1 1 1" />
+      </geometry>
+    </collision>
+    <collision name="link_1_collision_base_0">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/collision/link_1_base_0.obj" scale="1 1 1" />
+      </geometry>
+    </collision>
+    <collision name="link_1_collision_base_1">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/collision/link_1_base_1.obj" scale="1 1 1" />
+      </geometry>
+    </collision>
+    <collision name="link_1_collision_shoulder_0">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/collision/link_1_shoulder_0.obj" scale="1 1 1" />
+      </geometry>
+    </collision>
+    <collision name="link_1_collision_shoulder_1">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/collision/link_1_shoulder_1.obj" scale="1 1 1" />
+      </geometry>
+    </collision>
+    <collision name="link_1_collision_shoulder_2">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/collision/link_1_shoulder_2.obj" scale="1 1 1" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="link_2">
+    <inertial>
+      <origin xyz="-0.0201796573725 -0.0157731190672 0.296577148445" rpy="0 0 0" />
+      <mass value="0.352283402494" />
+      <inertia ixx="0.0119385214488" ixy="1.3374728951e-05" ixz="-0.000493354410029" iyy="0.0120361634917" iyz="0.00024358539942" izz="0.000234203635247" />
+    </inertial>
+    <visual name="link_2_visual_0">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/visual/link_2_0.stl" scale="1 1 1" />
+      </geometry>
+      <material name="link_2_material_0">
+        <color rgba="0.439 0.439 0.439 1" />
+      </material>
+    </visual>
+    <visual name="link_2_visual_1">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/visual/link_2_1.stl" scale="1 1 1" />
+      </geometry>
+      <material name="link_2_material_1">
+        <color rgba="0.894 0.894 0.894 1" />
+      </material>
+    </visual>
+    <visual name="link_2_visual_2">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/visual/link_2_2.stl" scale="1 1 1" />
+      </geometry>
+      <material name="link_2_material_2">
+        <color rgba="0.867 0.91 1 1" />
+      </material>
+    </visual>
+    <visual name="link_2_visual_3">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/visual/link_2_3.stl" scale="1 1 1" />
+      </geometry>
+      <material name="link_2_material_3">
+        <color rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision name="link_2_collision_rod_0">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/collision/link_2_rod_0.obj" scale="1 1 1" />
+      </geometry>
+    </collision>
+    <collision name="link_2_collision_rod_1">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/collision/link_2_rod_1.obj" scale="1 1 1" />
+      </geometry>
+    </collision>
+    <collision name="link_2_collision_clamp_0">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/collision/link_2_clamp_0.obj" scale="1 1 1" />
+      </geometry>
+    </collision>
+    <collision name="link_2_collision_clamp_1">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/collision/link_2_clamp_1.obj" scale="1 1 1" />
+      </geometry>
+    </collision>
+    <collision name="link_2_collision_clamp_2">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/collision/link_2_clamp_2.obj" scale="1 1 1" />
+      </geometry>
+    </collision>
+    <collision name="link_2_collision_clamp_3">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/collision/link_2_clamp_3.obj" scale="1 1 1" />
+      </geometry>
+    </collision>
+    <collision name="link_2_collision_clamp_4">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/collision/link_2_clamp_4.obj" scale="1 1 1" />
+      </geometry>
+    </collision>
+    <collision name="link_2_collision_clamp_5">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/collision/link_2_clamp_5.obj" scale="1 1 1" />
+      </geometry>
+    </collision>
+    <collision name="link_2_collision_plate_0">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/collision/link_2_plate_0.obj" scale="1 1 1" />
+      </geometry>
+    </collision>
+    <collision name="link_2_collision_plate_1">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/collision/link_2_plate_1.obj" scale="1 1 1" />
+      </geometry>
+    </collision>
+    <collision name="link_2_collision_motor">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/collision/link_2_motor.obj" scale="1 1 1" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="link_3">
+    <inertial>
+      <origin xyz="0.0798342779182 -0.0216791461594 0.0473718740477" rpy="0 0 0" />
+      <mass value="0.204575094364" />
+      <inertia ixx="0.000231866428471" ixy="1.62863562332e-05" ixz="1.95238366622e-05" iyy="0.000283073992859" iyz="-1.95197074745e-05" izz="0.000247154630103" />
+    </inertial>
+    <visual name="link_3_visual_0">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/visual/link_3_0.stl" scale="1 1 1" />
+      </geometry>
+      <material name="link_3_material_0">
+        <color rgba="0.894 0.894 0.894 1" />
+      </material>
+    </visual>
+    <visual name="link_3_visual_1">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/visual/link_3_1.stl" scale="1 1 1" />
+      </geometry>
+      <material name="link_3_material_1">
+        <color rgba="0.867 0.91 1 1" />
+      </material>
+    </visual>
+    <visual name="link_3_visual_2">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/visual/link_3_2.stl" scale="1 1 1" />
+      </geometry>
+      <material name="link_3_material_2">
+        <color rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision name="link_3_collision_plate">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/collision/link_3_plate.obj" scale="1 1 1" />
+      </geometry>
+    </collision>
+    <collision name="link_3_collision_shelf">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/collision/link_3_shelf.obj" scale="1 1 1" />
+      </geometry>
+    </collision>
+    <collision name="link_3_collision_end_plate">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/collision/link_3_end_plate.obj" scale="1 1 1" />
+      </geometry>
+    </collision>
+    <collision name="link_3_collision_tab">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/collision/link_3_tab.obj" scale="1 1 1" />
+      </geometry>
+    </collision>
+    <collision name="link_3_collision_motor">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/collision/link_3_motor.obj" scale="1 1 1" />
+      </geometry>
+    </collision>
+    <collision name="link_3_collision_connector">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/collision/link_3_connector.obj" scale="1 1 1" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="link_4">
+    <inertial>
+      <origin xyz="0.0563848744065 0.0024206960514 -7.58143265313e-05" rpy="0 0 0" />
+      <mass value="0.136156911146" />
+      <inertia ixx="6.21039057708e-05" ixy="1.57908277957e-05" ixz="5.68371843904e-08" iyy="0.000101725535768" iyz="-3.1545311833e-07" izz="9.96657538531e-05" />
+    </inertial>
+    <visual name="link_4_visual_0">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/visual/link_4_0.stl" scale="1 1 1" />
+      </geometry>
+      <material name="link_4_material_0">
+        <color rgba="0.894 0.894 0.894 1" />
+      </material>
+    </visual>
+    <visual name="link_4_visual_1">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/visual/link_4_1.stl" scale="1 1 1" />
+      </geometry>
+      <material name="link_4_material_1">
+        <color rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision name="link_4_collision_flange">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/collision/link_4_flange.obj" scale="1 1 1" />
+      </geometry>
+    </collision>
+    <collision name="link_4_collision_plate">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/collision/link_4_plate.obj" scale="1 1 1" />
+      </geometry>
+    </collision>
+    <collision name="link_4_collision_motor">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/collision/link_4_motor.obj" scale="1 1 1" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="link_5">
+    <inertial>
+      <origin xyz="0.0527732841383 -0.0131266555543 -0.0304486530353" rpy="0 0 0" />
+      <mass value="0.127921023499" />
+      <inertia ixx="7.3654398857e-05" ixy="-1.86037585637e-06" ixz="3.05596292282e-05" iyy="0.000133250909354" iyz="1.1958660818e-06" izz="0.000108970211481" />
+    </inertial>
+    <visual name="link_5_visual_0">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/visual/link_5_0_rounded.obj" scale="1 1 1" />
+      </geometry>
+      <material name="link_5_material_0">
+        <color rgba="0.894 0.894 0.894 1" />
+      </material>
+    </visual>
+    <visual name="link_5_visual_1">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/visual/link_5_1.stl" scale="1 1 1" />
+      </geometry>
+      <material name="link_5_material_1">
+        <color rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision name="link_5_collision_plate">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/collision/link_5_plate.obj" scale="1 1 1" />
+      </geometry>
+    </collision>
+    <collision name="link_5_collision_motor">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/collision/link_5_motor.obj" scale="1 1 1" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="link_6">
+    <inertial>
+      <origin xyz="-0.00518088687919 4.39241859388e-05 5.88842842704e-05" rpy="0 0 0" />
+      <mass value="0.135563107326" />
+      <inertia ixx="6.26712925842e-05" ixy="1.24993587649e-07" ixz="2.21830600979e-07" iyy="6.24768996852e-05" iyz="-8.90928834658e-08" izz="6.2322716237e-05" />
+    </inertial>
+    <visual name="link_6_visual_0">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/visual/link_6_0.stl" scale="1 1 1" />
+      </geometry>
+      <material name="link_6_material_0">
+        <color rgba="0.894 0.894 0.894 1" />
+      </material>
+    </visual>
+    <visual name="link_6_visual_1">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/visual/link_6_1.stl" scale="1 1 1" />
+      </geometry>
+      <material name="link_6_material_1">
+        <color rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision name="link_6_collision_wrist">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/collision/link_6_wrist.obj" scale="1 1 1" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="link_7">
+    <inertial>
+      <origin xyz="0.0681370435202 -0.00106727351733 -7.70254465178e-06" rpy="0 0 0" />
+      <mass value="0.464405307749" />
+      <inertia ixx="0.000544334081064" ixy="5.41872390866e-06" ixz="2.61384863244e-08" iyy="0.000888823377148" iyz="-2.43376302812e-10" izz="0.00113194615708" />
+    </inertial>
+    <visual name="link_7_visual_0">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/visual/link_7_0.stl" scale="1 1 1" />
+      </geometry>
+      <material name="link_7_material_0">
+        <color rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <visual name="link_7_visual_1">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/visual/link_7_1.stl" scale="1 1 1" />
+      </geometry>
+      <material name="link_7_material_1">
+        <color rgba="0.867 0.91 1 1" />
+      </material>
+    </visual>
+    <visual name="link_7_visual_2">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/visual/link_7_2.stl" scale="1 1 1" />
+      </geometry>
+      <material name="link_7_material_2">
+        <color rgba="0.894 0.894 0.894 1" />
+      </material>
+    </visual>
+    <visual name="link_7_visual_3">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/visual/link_7_3.stl" scale="1 1 1" />
+      </geometry>
+      <material name="link_7_material_3">
+        <color rgba="1 0.957 0.886 1" />
+      </material>
+    </visual>
+    <visual name="link_7_visual_4">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/visual/link_7_4.stl" scale="1 1 1" />
+      </geometry>
+      <material name="link_7_material_4">
+        <color rgba="0.839 0.467 0.369 1" />
+      </material>
+    </visual>
+    <collision name="link_7_collision_motor">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/collision/link_7_motor.obj" scale="1 1 1" />
+      </geometry>
+    </collision>
+    <collision name="link_7_collision_rear_plate">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/collision/link_7_rear_plate.obj" scale="1 1 1" />
+      </geometry>
+    </collision>
+    <collision name="link_7_collision_rail_0">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/collision/link_7_rail_0.obj" scale="1 1 1" />
+      </geometry>
+    </collision>
+    <collision name="link_7_collision_rail_1">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/collision/link_7_rail_1.obj" scale="1 1 1" />
+      </geometry>
+    </collision>
+    <collision name="link_7_collision_front_plate">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/collision/link_7_front_plate.obj" scale="1 1 1" />
+      </geometry>
+    </collision>
+    <collision name="link_7_collision_hinge_0">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/collision/link_7_hinge_0.obj" scale="1 1 1" />
+      </geometry>
+    </collision>
+    <collision name="link_7_collision_hinge_1">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/collision/link_7_hinge_1.obj" scale="1 1 1" />
+      </geometry>
+    </collision>
+    <collision name="link_7_collision_drive">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/collision/link_7_drive.obj" scale="1 1 1" />
+      </geometry>
+    </collision>
+    <collision name="link_7_collision_finger_0">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/collision/link_7_finger_0.obj" scale="1 1 1" />
+      </geometry>
+    </collision>
+    <collision name="link_7_collision_finger_1">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/collision/link_7_finger_1.obj" scale="1 1 1" />
+      </geometry>
+    </collision>
+    <collision name="link_7_collision_finger_2">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/collision/link_7_finger_2.obj" scale="1 1 1" />
+      </geometry>
+    </collision>
+    <collision name="link_7_collision_finger_3">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/collision/link_7_finger_3.obj" scale="1 1 1" />
+      </geometry>
+    </collision>
+    <collision name="link_7_collision_tie_0">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/collision/link_7_tie_0.obj" scale="1 1 1" />
+      </geometry>
+    </collision>
+    <collision name="link_7_collision_tie_1">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/collision/link_7_tie_1.obj" scale="1 1 1" />
+      </geometry>
+    </collision>
+    <collision name="link_7_collision_tie_2">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/collision/link_7_tie_2.obj" scale="1 1 1" />
+      </geometry>
+    </collision>
+    <collision name="link_7_collision_tie_3">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/collision/link_7_tie_3.obj" scale="1 1 1" />
+      </geometry>
+    </collision>
+    <collision name="link_7_collision_linkage_0">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/collision/link_7_linkage_0.obj" scale="1 1 1" />
+      </geometry>
+    </collision>
+    <collision name="link_7_collision_linkage_1">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rm27_heavy_arm_demo/model/meshes/collision/link_7_linkage_1.obj" scale="1 1 1" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="joint_1" type="revolute">
+    <parent link="base_link" />
+    <child link="link_1" />
+    <origin xyz="0 2.54483933926e-15 0.0110000007682" rpy="0 0 0" />
+    <axis xyz="0 0 1" />
+    <limit lower="-6.283185307179586" upper="6.283185307179586" effort="1000000" velocity="1000000" />
+    <dynamics damping="2" friction="0" />
+  </joint>
+  <joint name="joint_2" type="revolute">
+    <parent link="link_1" />
+    <child link="link_2" />
+    <origin xyz="2.22044604925e-16 0.0397 0.065" rpy="0 0 0" />
+    <axis xyz="0 -1 0" />
+    <limit lower="-6.283185307179586" upper="6.283185307179586" effort="1000000" velocity="1000000" />
+    <dynamics damping="2" friction="0" />
+  </joint>
+  <joint name="joint_3" type="revolute">
+    <parent link="link_2" />
+    <child link="link_3" />
+    <origin xyz="-0.00395496976391 0.001 0.480181722278" rpy="0 0 0" />
+    <axis xyz="0 -1 0" />
+    <limit lower="-6.283185307179586" upper="6.283185307179586" effort="1000000" velocity="1000000" />
+    <dynamics damping="1" friction="0" />
+  </joint>
+  <joint name="joint_4" type="revolute">
+    <parent link="link_3" />
+    <child link="link_4" />
+    <origin xyz="0.108875913402 -0.031 0.0401726612783" rpy="0 0 0" />
+    <axis xyz="1 0 0" />
+    <limit lower="-6.283185307179586" upper="6.283185307179586" effort="1000000" velocity="1000000" />
+    <dynamics damping="0.5" friction="0" />
+  </joint>
+  <joint name="joint_5" type="revolute">
+    <parent link="link_4" />
+    <child link="link_5" />
+    <origin xyz="0.063 0.024125 -1.11022302463e-16" rpy="0 0 0" />
+    <axis xyz="0 -1 0" />
+    <limit lower="-6.283185307179586" upper="6.283185307179586" effort="1000000" velocity="1000000" />
+    <dynamics damping="0.5" friction="0" />
+  </joint>
+  <joint name="joint_6" type="revolute">
+    <parent link="link_5" />
+    <child link="link_6" />
+    <origin xyz="0.12124355653 -0.028 -0.07" rpy="0 0 0" />
+    <axis xyz="0 -1 0" />
+    <limit lower="-6.283185307179586" upper="6.283185307179586" effort="1000000" velocity="1000000" />
+    <dynamics damping="0.3" friction="0" />
+  </joint>
+  <joint name="joint_7" type="revolute">
+    <parent link="link_6" />
+    <child link="link_7" />
+    <origin xyz="0.0212499439429 0 1.11022302463e-16" rpy="0 0 0" />
+    <axis xyz="1 0 0" />
+    <limit lower="-6.283185307179586" upper="6.283185307179586" effort="1000000" velocity="1000000" />
+    <dynamics damping="0.3" friction="0" />
+  </joint>
+  <link name="tool0" />
+  <joint name="tool0_fixed" type="fixed">
+    <parent link="link_7" />
+    <child link="tool0" />
+    <origin xyz="0.176143757679 0 0" rpy="0 0 0" />
+  </joint>
+</robot>

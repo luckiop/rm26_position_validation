@@ -1,11 +1,13 @@
 /** @file level3_case.cpp
- * @brief 单个 RM26 三级请求的规划与轨迹导出；参数均为 m、rad、s。
+ * @brief 单个 RM26 / RM27 三级请求的规划与轨迹导出；参数均为 m、rad、s。
  */
 #include <rm26_engineering_arm_demo/rm26_arm.hpp>
+#include <rm27_heavy_arm_demo/rm27_heavy_arm_demo.hpp>
 #include <tech_core_planner/planner.hpp>
 
 #include <mujoco/mujoco.h>
 
+#include <algorithm>
 #include <memory>
 #include <chrono>
 #include <cmath>
@@ -45,11 +47,12 @@ void check_resources(const std::filesystem::path & directory)
  * @brief 从模型计算 J1 连杆朝上时的关节限位。
  * @param[in] path 固定底座机械臂 MJCF 路径。
  * @param[in] max_from_vertical 相对竖直向上的最大偏角，单位 rad。
- * @return 模型关节 j1 的限位，单位 rad；保证 J2 转轴不低于 J1 转轴。
+ * @param[in] is_rm27 RM27 使用 joint_2 和 link_2 → link_3。
+ * @return 肩部俯仰关节限位，单位 rad；保证肘部原点不低于肩部。
  * @note 连杆方向定义为 j1_link 原点指向 j2_link 原点，当前车辆仅绕世界 Z 轴停车旋转。
  */
 tcp::JointRange j1_above_horizontal_limits(
-  const std::filesystem::path & path, double max_from_vertical)
+  const std::filesystem::path & path, double max_from_vertical, bool is_rm27 = false)
 {
   if (!(max_from_vertical > 0.0 && max_from_vertical <= tcp::kPi / 2)) {
     throw std::invalid_argument("J1 deviation must be in (0, pi/2] rad");
@@ -60,11 +63,11 @@ tcp::JointRange j1_above_horizontal_limits(
   if (!model) {throw std::runtime_error(error);}
   std::unique_ptr<mjData, decltype(&mj_deleteData)> data(mj_makeData(model.get()), mj_deleteData);
   if (!data) {throw std::runtime_error("cannot allocate J1 model data");}
-  const int joint = mj_name2id(model.get(), mjOBJ_JOINT, "j1");
-  const int proximal = mj_name2id(model.get(), mjOBJ_BODY, "j1_link");
-  const int distal = mj_name2id(model.get(), mjOBJ_BODY, "j2_link");
+  const int joint = mj_name2id(model.get(), mjOBJ_JOINT, is_rm27 ? "joint_2" : "j1");
+  const int proximal = mj_name2id(model.get(), mjOBJ_BODY, is_rm27 ? "link_2" : "j1_link");
+  const int distal = mj_name2id(model.get(), mjOBJ_BODY, is_rm27 ? "link_3" : "j2_link");
   if (joint < 0 || proximal < 0 || distal < 0) {
-    throw std::runtime_error("J1 horizontal constraint requires j1, j1_link and j2_link");
+    throw std::runtime_error("shoulder elevation constraint requires the shoulder joint and adjacent links");
   }
   const auto height = [&](double angle) {
     data->qpos[model->jnt_qposadr[joint]] = angle;
@@ -126,6 +129,19 @@ double number(const char * text)
   return result;
 }
 
+/** @brief 序列化起始关节角。 @param[in] joints 按模型规划关节顺序排列的关节角，rad。 @return JSON 数组。 */
+std::string joints_json(const tcp::JointVector & joints)
+{
+  std::ostringstream output;
+  output << std::setprecision(17) << '[';
+  for (Eigen::Index index = 0; index < joints.size(); ++index) {
+    if (index) {output << ',';}
+    output << joints[index];
+  }
+  output << ']';
+  return output.str();
+}
+
 /** @brief 阶段名称。 @param[in] phase 阶段。 @return 阶段名称。 */
 const char * phase_name(tcp::Phase phase)
 {
@@ -164,9 +180,9 @@ void write_trajectory(const std::filesystem::path & path, const tcp::Trajectory 
 int main(int argc, char ** argv)
 {
   try {
-    std::filesystem::path arm_model_path = rm26_engineering_arm_demo::installed_model_directory().parent_path() /
-      "rm26_arm_only" / "rm26_arm_only.xml";
-    std::string arm_attach_link = "j6_link";
+    std::filesystem::path arm_model_path;
+    std::string arm_attach_link;
+    std::string arm_family = "rm26";
     double j1_max_from_vertical_rad = tcp::kPi / 2;
     bool disable_self_collision = false;
     bool disable_gripper_pillar_collision = false;
@@ -183,26 +199,63 @@ int main(int argc, char ** argv)
       else if (option.rfind("--arm-attach-link=", 0) == 0) {
         arm_attach_link = option.substr(18);
       }
+      else if (option.rfind("--arm-family=", 0) == 0) {
+        arm_family = option.substr(13);
+      }
       else {break;}
       --argc;
+    }
+    if (arm_family != "rm26" && arm_family != "rm27") {
+      throw std::invalid_argument("arm-family must be rm26 or rm27");
+    }
+    const bool is_rm27 = arm_family == "rm27";
+    auto arm = is_rm27 ? rm27_heavy_arm_demo::make_arm_config() : rm26_engineering_arm_demo::make_arm_config();
+    if (arm_model_path.empty()) {
+      arm_model_path = is_rm27 ? arm.model_path :
+        rm26_engineering_arm_demo::installed_model_directory().parent_path() / "rm26_arm_only" / "rm26_arm_only.xml";
+    }
+    arm.model_path = arm_model_path;
+    if (!arm_attach_link.empty()) {arm.attach_link = arm_attach_link;}
+    auto start_joints = is_rm27 ? rm27_heavy_arm_demo::planning_home_joints() :
+      rm26_engineering_arm_demo::planning_home_joints();
+    if (is_rm27) {
+      const auto limits = j1_above_horizontal_limits(
+        arm_model_path, j1_max_from_vertical_rad, true);
+      // Keep the default start inside tightened shoulder limits, with a small margin.
+      const double margin = std::min(0.02, (limits.upper - limits.lower) * 0.1);
+      start_joints[1] = std::clamp(start_joints[1], limits.lower + margin, limits.upper - margin);
+    }
+    if (argc == 2 && std::string(argv[1]) == "--print-arm-config") {
+      std::cout << "{\"model_family\":" << json_string(arm_family)
+        << ",\"model_path\":" << json_string(arm_model_path.string())
+        << ",\"attach_link\":" << json_string(arm.attach_link)
+        << ",\"start_joints_rad\":" << joints_json(start_joints) << ",\"planning_joints\":[";
+      for (std::size_t index = 0; index < arm.planning_joints.size(); ++index) {
+        if (index) {std::cout << ',';}
+        std::cout << json_string(arm.planning_joints[index]);
+      }
+      std::cout << "]}\n";
+      return 0;
     }
     if (argc == 2 && std::string(argv[1]) == "--print-arm-model-path") {
       std::cout << arm_model_path.string() << '\n';
       return 0;
     }
     if (argc == 2 && std::string(argv[1]) == "--check-j1-limits") {
-      const auto limits = j1_above_horizontal_limits(arm_model_path, j1_max_from_vertical_rad);
+      const auto limits = j1_above_horizontal_limits(arm_model_path, j1_max_from_vertical_rad, is_rm27);
       std::cout << std::setprecision(17) << "[" << limits.lower << "," << limits.upper << "]\n";
       return 0;
     }
     if (argc == 2 && std::string(argv[1]) == "--check-resources") {
-      check_resources(rm26_engineering_arm_demo::installed_model_directory());
+      check_resources(is_rm27 ? rm27_heavy_arm_demo::installed_model_directory().parent_path().parent_path() :
+        rm26_engineering_arm_demo::installed_model_directory());
+      check_resources(arm_model_path.parent_path());
       check_resources(LEVEL3_ASSET_DIR);
       std::cout << "resources ok\n";
       return 0;
     }
     if (argc != 11 && argc != 14 && argc != 15 && argc != 17 && argc != 20 && argc != 21) {
-      throw std::invalid_argument("usage: level3_case x y z qw qx qy qz timeout_s output_dir gui(0|1) [assembly_x assembly_y assembly_z roll pitch yaw [parking_x parking_y parking_z [parking_yaw]]] [--disable-self-collision] [--disable-gripper-pillar-collision]");
+      throw std::invalid_argument("usage: level3_case x y z qw qx qy qz timeout_s output_dir gui(0|1) [assembly_x assembly_y assembly_z roll pitch yaw [parking_x parking_y parking_z [parking_yaw]]] [--arm-family=rm26|rm27] [--arm-model-path=PATH] [--disable-self-collision] [--disable-gripper-pillar-collision]");
     }
     if (!(j1_max_from_vertical_rad > 0.0 && j1_max_from_vertical_rad <= tcp::kPi / 2)) {
       throw std::invalid_argument("j1_max_from_vertical_rad must be in (0, pi/2] rad");
@@ -226,7 +279,7 @@ int main(int argc, char ** argv)
         Eigen::AngleAxisd(number(argv[14]), Eigen::Vector3d::UnitX())).toRotationMatrix();
       request.display_world_from_assembly = assembly;
     }
-    request.start = tcp::JointVector::Zero(7);
+    request.start = start_joints;
     request.task.level = tcp::AssemblyLevel::Full;
     request.task.twist_mode = tcp::TwistMode::RequiredRange;
     request.task.twist_range = {-tcp::kPi / 2, tcp::kPi / 2};
@@ -235,12 +288,11 @@ int main(int argc, char ** argv)
     request.options.timing.limits.velocity = tcp::JointVector::Constant(7, 0.5);
     request.options.timing.limits.acceleration = tcp::JointVector::Constant(7, 1.0);
     tcp::PlannerConfig config;
-    config.arm = rm26_engineering_arm_demo::make_arm_config();
-    config.arm.model_path = arm_model_path;
-    config.arm.attach_link = arm_attach_link;
+    config.arm = arm;
     config.arm.default_fixed_joints.clear();
-    config.arm.joint_limits["j1"] = j1_above_horizontal_limits(
-      config.arm.model_path, j1_max_from_vertical_rad);
+    const std::string elevation_joint = is_rm27 ? "joint_2" : "j1";
+    config.arm.joint_limits[elevation_joint] = j1_above_horizontal_limits(
+      config.arm.model_path, j1_max_from_vertical_rad, is_rm27);
     if (argc == 14 || argc == 15 || argc == 20 || argc == 21) {
       const int start = argc <= 15 ? 11 : 17;
       config.arm.parking_offset_world = Eigen::Vector3d(
@@ -250,7 +302,7 @@ int main(int argc, char ** argv)
     config.headless = gui == "0";
     config.interactive = gui == "1";
     tcp::Planner planner(config);
-    const auto j1_limits = config.arm.joint_limits.at("j1");
+    const auto j1_limits = config.arm.joint_limits.find(elevation_joint);
     const auto solve = [&](const std::filesystem::path & output, std::size_t revision) {
       std::filesystem::create_directories(output);
       const Eigen::Quaterniond core_rotation(request.scene.world_from_core.linear());
@@ -285,6 +337,9 @@ int main(int argc, char ** argv)
         }
         if (disable_self_collision) {saved_request << ",\"--disable-self-collision\"";}
         if (disable_gripper_pillar_collision) {saved_request << ",\"--disable-gripper-pillar-collision\"";}
+        saved_request << ',' << json_string("--arm-family=" + arm_family)
+          << ',' << json_string("--arm-model-path=" + config.arm.model_path.string())
+          << ',' << json_string("--arm-attach-link=" + config.arm.attach_link);
         saved_request << "]}\n";
       }
       std::ostringstream report;
@@ -302,8 +357,14 @@ int main(int argc, char ** argv)
         }
       }
       report << std::setprecision(17) << "{\"success\":" << (success ? "true" : "false")
-        << ",\"j1_joint_limits_rad\":[" << j1_limits.lower << "," << j1_limits.upper << "]"
-        << ",\"check_self_collision\":" << (request.scene.collision.check_self_collision ? "true" : "false")
+        << ",\"arm_model_family\":" << json_string(arm_family)
+        << ",\"start_joints_rad\":" << joints_json(request.start)
+        << ",\"elevation_joint\":" << json_string(elevation_joint)
+        << ",\"j1_joint_limits_rad\":";
+      if (j1_limits != config.arm.joint_limits.end()) {
+        report << '[' << j1_limits->second.lower << ',' << j1_limits->second.upper << ']';
+      } else {report << "null";}
+      report << ",\"check_self_collision\":" << (request.scene.collision.check_self_collision ? "true" : "false")
         << ",\"check_gripper_pillar_collision\":" << (request.scene.collision.check_gripper_pillar_collision ? "true" : "false")
         << ",\"status\":" << json_string(status_name(result.status.code))
         << ",\"message\":" << json_string(result.status.message)

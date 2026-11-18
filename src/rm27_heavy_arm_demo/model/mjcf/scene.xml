@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mujoco model="rm27_heavy_arm_demo_scene">
+  <include file="rm27_heavy_arm_demo.xml" />
+  <worldbody>
+    <geom name="floor" type="plane" size="1.2 1.2 .05" pos="0 0 -.001" rgba=".85 .88 .90 1" contype="1" conaffinity="1" />
+    <camera name="overview" pos="1.05 -1.1 .85" xyaxes=".723 .69 0 -.21 .22 .953" />
+  </worldbody>
+</mujoco>

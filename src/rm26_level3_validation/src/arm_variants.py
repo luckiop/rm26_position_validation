@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Freeze an RM26 arm and optionally remove a middle section of a supported link."""
+"""Freeze an RM26 or RM27 arm, with family-specific rod-length changes."""
 import argparse
 import copy
 import hashlib
@@ -33,10 +33,70 @@ LINK_PROFILES = {
 }
 
 
+# User J1..J5 map to link_2..link_6; J0 and the gripper are immutable.
+# These are explicit exploration guard zones, not certified mechanical envelopes.
+RM27_PROFILES = {
+    'link_2': {'child': 'link_3', 'axis_mask': (1, 0, 1), 'end_clearance_m': .030},
+    'link_3': {'child': 'link_4', 'axis_mask': (1, 0, 1), 'end_clearance_m': .025},
+    'link_4': {'child': 'link_5', 'axis_mask': (1, 0, 0), 'end_clearance_m': .018},
+    'link_5': {'child': 'link_6', 'axis_mask': (1, 0, 1), 'end_clearance_m': .025},
+    'link_6': {'child': 'link_7', 'axis_mask': (1, 0, 0), 'end_clearance_m': .006},
+}
+
+# The terminal reference is the energy-unit mounting origin, not tool0.
+RM27_SIX_PROFILES = {**RM27_PROFILES, 'link_7': {
+    'terminal_reference_m': (.1355042231, 0, -.0725),
+    'axis_mask': (1, 0, 0), 'end_clearance_m': .025}}
+
+
+def rm27_lengths(source, include_j6=False):
+    root = ET.parse(source).getroot()
+    return {link: profile_axis(root, link, profile)[4]
+            for link, profile in (RM27_SIX_PROFILES if include_j6 else RM27_PROFILES).items()}
+
+
+def protected_resize(triangles, axis, original, target, clearance):
+    """Piecewise axial deformation: rigid end zones and a continuous middle."""
+    import numpy as np
+    if min(original, target) <= 2 * clearance + 1e-6:
+        raise ValueError('RM27 target intersects protected joint-end zones')
+    projection = triangles @ axis
+    middle = np.clip(projection - clearance, 0, original - 2 * clearance)
+    return triangles + (middle * ((target-original)/(original-2*clearance)))[..., None] * axis
+
+
 def validate_variant(spec):
+    if not isinstance(spec, dict):
+        raise ValueError('Arm configuration must be an object')
+    family = spec.get('model_family', 'rm26')
+    if family not in ('rm26', 'rm27'):
+        raise ValueError('model_family must be rm26 or rm27')
     changes = spec.get('changes', [])
-    if not isinstance(changes, list) or len(changes) > len(LINK_PROFILES):
-        raise ValueError('Generator supports up to four link changes')
+    profiles = (RM27_SIX_PROFILES if spec.get('include_j6') else RM27_PROFILES) if family == 'rm27' else LINK_PROFILES
+    if not isinstance(changes, list) or len(changes) > len(profiles):
+        raise ValueError(f'Generator supports up to {len(profiles)} link changes for {family}')
+    if family == 'rm27':
+        seen = set()
+        for change in changes:
+            if (not isinstance(change, dict) or change.get('link') not in profiles
+                    or change.get('method') != 'set_length'):
+                raise ValueError('RM27 requires link_2..link_6 / set_length')
+            value = change.get('target_length_m')
+            if isinstance(value, bool) or not isinstance(value, (float, int)) or not math.isfinite(value) or value <= 0:
+                raise ValueError('target_length_m must be finite and positive')
+            if change['link'] in seen:
+                raise ValueError('Duplicate RM27 link')
+            seen.add(change['link'])
+        if spec.get('stage', 'joint') not in ('joint', 'pair', 'priority'):
+            raise ValueError('RM27 stage must be pair, priority or joint')
+        if spec.get('stage') == 'priority' and not spec.get('include_j6'):
+            raise ValueError('RM27 priority stage requires include_j6')
+        delta = spec.get('total_delta_m', 0.0)
+        if isinstance(delta, bool) or not isinstance(delta, (float, int)) or not math.isfinite(delta):
+            raise ValueError('total_delta_m must be finite')
+        if not spec.get('include_j6') and delta != 0:
+            raise ValueError('total_delta_m requires include_j6')
+        return changes
     seen_links = set()
     for change in changes:
         if not isinstance(change, dict):
@@ -69,7 +129,9 @@ def validate_variant(spec):
 def variant_label(spec):
     changes = validate_variant(spec)
     if not changes:
-        return '原始'
+        return 'RM27 重载机械臂' if spec.get('model_family') == 'rm27' else '原始'
+    if spec.get('model_family') == 'rm27':
+        return 'RM27 ' + ' / '.join(f"J{int(c['link'].split('_')[1])-1}={c['target_length_m']*1000:.1f}mm" for c in changes)
     labels = []
     for change in changes:
         link = change['link'].split('_')[0].upper()
@@ -192,13 +254,21 @@ def generate_arm(source, spec, output):
         raise ValueError(f'Arm output must not exist: {output}')
     tree = ET.parse(source)
     root = tree.getroot()
+    family = spec.get('model_family', 'rm26')
+    required_bodies = ('link_7',) if family == 'rm27' else ('j6_link',)
+    required_joints = ([f'joint_{index}' for index in range(1, 8)] if family == 'rm27'
+                       else ['j0', 'j1', 'j2', 'j3', 'j4',
+                             'end_differential_controller/j5', 'end_differential_controller/j6'])
+    if (any(root.find(f".//body[@name='{name}']") is None for name in required_bodies)
+            or any(root.find(f".//joint[@name='{name}']") is None for name in required_joints)):
+        raise ValueError(f'Source XML does not match requested model_family {family}')
     compiler = root.find('compiler')
     meshdir = (source.parent / compiler.get('meshdir', '')).resolve()
     assets = root.find('asset')
     # Reject unhandled external resources instead of silently hashing an incomplete bundle.
     if root.findall('include') or any(a.tag != 'mesh' for a in assets):
         raise ValueError('Expected standalone arm XML with mesh assets only')
-    if changes:
+    if changes and family != 'rm27':
         import numpy as np
         profile_lengths = {link: profile_axis(root, link, profile)[4]
                            for link, profile in LINK_PROFILES.items()}
@@ -208,6 +278,26 @@ def generate_arm(source, spec, output):
                           for change in changes)
         if abs(total_delta) > 0.30 * total_original_length + 1e-12:
             raise ValueError('Net total rod-length change must stay within ±30%')
+    if family == 'rm27':
+        import numpy as np
+        profiles = RM27_SIX_PROFILES if spec.get('include_j6') else RM27_PROFILES
+        lengths = {link: profile_axis(root, link, profile)[4] for link, profile in profiles.items()}
+        targets = {**lengths, **{c['link']: c['target_length_m'] for c in changes}}
+        if abs(sum(targets.values()) - sum(lengths.values()) - spec.get('total_delta_m', 0.0)) > 1e-6:
+            raise ValueError('RM27 total rod length must match target within 1e-6 m')
+        for link, target in targets.items():
+            if target <= 2 * profiles[link]['end_clearance_m'] + 1e-6:
+                raise ValueError('RM27 target intersects protected joint-end zones')
+            if spec.get('stage', 'joint') in ('joint', 'priority') and not .3 * lengths[link] - 1e-9 <= target <= 2 * lengths[link] + 1e-9:
+                raise ValueError('RM27 joint stage requires 30%..200% original length')
+        if spec.get('stage') == 'priority' and any(abs(targets[k]-lengths[k]) > 1e-9 for k in ('link_4', 'link_5', 'link_6')):
+            raise ValueError('RM27 priority stage may only change J1/J2/J6')
+        if spec.get('stage') == 'pair':
+            pair_sum = lengths['link_2'] + lengths['link_3']
+            if any(abs(targets[k]-lengths[k]) > 1e-9 for k in list(lengths)[2:]):
+                raise ValueError('RM27 pair stage may only change J1/J2')
+            if any(not .1 * pair_sum - 1e-9 <= targets[k] <= .9 * pair_sum + 1e-9 for k in ('link_2', 'link_3')):
+                raise ValueError('RM27 pair stage requires 10%..90% pair total')
     output.mkdir(parents=True)
     (output / 'meshes').mkdir()
     source_files = {str(source): file_hash(source)}
@@ -221,14 +311,16 @@ def generate_arm(source, spec, output):
         paths[mesh.get('name')] = path
     compiler.set('meshdir', '.')
     modifications = []
-    attach_link = 'j6_link'
+    attach_link = 'link_7' if family == 'rm27' else 'j6_link'
 
     for change in changes:
-        profile = LINK_PROFILES[change['link']]
+        profile = (profiles if family == 'rm27' else LINK_PROFILES)[change['link']]
         body, child, before, axis, axial_length = profile_axis(root, change['link'], profile)
-        length = requested_length(change, axial_length)
+        length = (abs(change['target_length_m'] - axial_length) if family == 'rm27'
+                  else requested_length(change, axial_length))
         shortening = change['method'] == 'remove_middle'
-        delta = -length if shortening else length
+        delta = (change['target_length_m'] - axial_length if family == 'rm27'
+                 else -length if shortening else length)
         after = before + delta * axis
         if child is not None:
             child.set('pos', ' '.join(f'{x:.12g}' for x in after))
@@ -239,6 +331,12 @@ def generate_arm(source, spec, output):
             attach_link = 'variant_energy_mount'
             shift = delta * axis
             ET.SubElement(body, 'body', name=attach_link, pos=' '.join(f'{x:.12g}' for x in shift))
+            if family == 'rm27':
+                site = body.find("site[@name='tool0']")
+                if site is None:
+                    raise ValueError('RM27 tool0 site missing')
+                position = np.fromstring(site.get('pos', '0 0 0'), sep=' ') + shift
+                site.set('pos', ' '.join(f'{x:.12g}' for x in position))
             mount_record = {'terminal_reference_before_m': before.tolist(),
                             'terminal_reference_after_m': after.tolist(), 'energy_mount_body': attach_link,
                             'energy_mount_shift_m': shift.tolist()}
@@ -254,7 +352,15 @@ def generate_arm(source, spec, output):
             if original.get('scale', '1 1 1') != '1 1 1':
                 raise ValueError('Scaled source mesh unsupported')
             body.remove(geom)
-            if shortening:
+            if family == 'rm27':
+                clearance = profile['end_clearance_m']
+                # Split at deformation breakpoints so triangles cannot shortcut bends.
+                a = clip_triangles(triangles, axis, clearance, False)
+                b = clip_triangles(clip_triangles(triangles, axis, clearance, True), axis, axial_length-clearance, False)
+                c = clip_triangles(triangles, axis, axial_length-clearance, True)
+                pieces = [(name, protected_resize(part, axis, axial_length, axial_length+delta, clearance))
+                          for name, part in [('prox', a), ('middle', b), ('dist', c)]]
+            elif shortening:
                 center = change.get('cut_center_m', float(axial_length / 2))
                 lower, upper = center - length / 2, center + length / 2
                 clearance = profile['end_clearance_m']
@@ -292,7 +398,9 @@ def generate_arm(source, spec, output):
         record = {**change, 'length_change_m': float(delta), 'axis_in_link': axis.tolist(),
                   **mount_record, 'axial_length_before_m': float(axial_length),
                   'axial_length_after_m': float(axial_length + delta), **counts}
-        if shortening:
+        if family == 'rm27':
+            record.update(end_clearance_m=clearance, method='set_length')
+        elif shortening:
             record.update(shorten_m=float(length), cut_center_m=float(center),
                           end_clearance_m=clearance, cut_interval_m=[lower, upper])
         else:
@@ -309,17 +417,21 @@ def generate_arm(source, spec, output):
     dump(output / 'variant_config.json', spec)
     files = {str(p.relative_to(output)): file_hash(p) for p in sorted(output.rglob('*')) if p.is_file()}
     fingerprint = hashlib.sha256(json.dumps(files, sort_keys=True).encode()).hexdigest()
-    default_id = ('original' if not changes else '-'.join(
+    default_id = (('rm27-heavy' if family == 'rm27' else 'original') if not changes else '-'.join(
         change['link'].replace('_link', '') +
         ('-shortened' if change['method'] == 'remove_middle' else '-lengthened')
         for change in changes))
-    manifest = {'schema_version': 1, 'id': spec.get('id', default_id),
+    manifest = {'schema_version': 1, 'id': spec.get('id', default_id), 'model_family': family,
                 'label': variant_label(spec), 'attach_link': attach_link, 'fingerprint_sha256': fingerprint,
                 'model_file': 'model.xml', 'files_sha256': files, 'source_files_sha256': source_files,
+                'rod_lengths_before_m': lengths if family == 'rm27' else {},
+                'rod_lengths_after_m': targets if family == 'rm27' else {},
+                'guard_zone_policy': 'explicit exploration margins; not certified mechanical envelopes',
                 'modifications': modifications, 'inertia_policy': 'original mass and inertia retained; kinematics/collision exploration only',
                 'visual_seam_policy': 'axial cut/stretch geometry; no manufacturing-grade joint or solid validation'}
     dump(output / 'manifest.json', manifest)
-    return {'id': manifest['id'], 'label': manifest['label'], 'attach_link': attach_link, 'fingerprint_sha256': fingerprint,
+    return {'id': manifest['id'], 'label': manifest['label'], 'model_family': family,
+            'attach_link': attach_link, 'fingerprint_sha256': fingerprint,
             'model_path': str(output / 'model.xml'), 'manifest_path': str(output / 'manifest.json'),
             'manifest_sha256': file_hash(output / 'manifest.json')}
 
@@ -335,6 +447,8 @@ def verify_arm(identity):
         raise ValueError('Arm manifest fingerprint mismatch')
     if identity['label'] != manifest['label'] or identity['id'] != manifest['id']:
         raise ValueError('Arm identity/manifest label mismatch')
+    if identity.get('model_family', 'rm26') != manifest.get('model_family', 'rm26'):
+        raise ValueError('Arm model family identity mismatch')
     if identity.get('attach_link', 'j6_link') != manifest.get('attach_link', 'j6_link'):
         raise ValueError('Arm attachment identity mismatch')
     expected = (manifest_path.parent / manifest['model_file']).resolve()

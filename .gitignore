@@ -4,6 +4,9 @@ install/
 log/
 artifacts/
 MUJOCO_LOG.TXT
+*.log
+*.log.*
+*.orig
 __pycache__/
 *.pyc
 build-master/

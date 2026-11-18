@@ -1,6 +1,21 @@
 # RM26 固定基座三级任务批量验证
 
-本包默认使用 `rm26_engineering_arm_demo` 的 J0–J6 精简七关节模型和 `tech_core_planner::Planner`，对规则表中的科技核心位姿进行确定性六维拉丁超立方采样。每个请求从七关节零位开始；三级任务使用 `RequiredRange`，须完整覆盖 Q `[-π/2, π/2] rad`，两侧由同一个已验收的 Q 剖面获得。最终角驻留由操作手完成，不包括在规划结果中。
+本包默认使用 `rm26_engineering_arm_demo` 的 J0–J6 精简七关节模型和 `tech_core_planner::Planner`，对规则表中的科技核心位姿进行确定性六维拉丁超立方采样。RM26 请求从七关节零位开始；三级任务使用 `RequiredRange`，须完整覆盖 Q `[-π/2, π/2] rad`，两侧由同一个已验收的 Q 剖面获得。最终角驻留由操作手完成，不包括在规划结果中。
+
+## RM27 重载机械臂
+
+另支持独立的 RM27 七关节模型，源码与资源位于上层 `src/rm27_heavy_arm_demo/`。构建脚本会同时构建模型配置库。选择配置 `config/arm_rm27.json`：
+
+```bash
+install-integrated/rm26_level3_validation/bin/level3_batch run \
+  --config src/rm26_level3_validation/config/default.json \
+  --arm-variant src/rm26_level3_validation/config/arm_rm27.json \
+  --set quick --output artifacts/rm27-quick
+```
+
+其 `model_family` 为 `rm27`。求解器使用 `joint_1`–`joint_7`、夹爪体 `link_7`、上游能量单元安装变换，以及 `[0, 1.39, -1.3, 0, 0, 0.3, 0] rad` 起始姿态；当前工作区仍使用自身的规划算法与验收。默认采样范围、停车位置及任务参数沿用所选任务配置，需按 RM27 的使用场景调整。RM27 将 `j1_max_from_vertical_rad` 应用于肩部俯仰 `joint_2`，方向定义为 `link_2` 指向 `link_3`，保证肘部不低于肩部。`j1_joint_limits_rad` 记录该关节实际限位，`elevation_joint` 标识关节名称。收紧角度时，RM27 默认起始姿态的 `joint_2` 自动调整至限位内，预留最多 0.02 rad 裕量；其余关节保持预设值。批次配置与逐例结果记录实际起始姿态。RM27 不接受 RM26 杆长修改格式；专用长度配置与搜索见文末“RM27 固定总杆长搜索”。
+
+模型类型、快照指纹与挂载体随批次保存，初始关节角记入配置、案例、元数据与逐例结果；浏览器及 replay 自动传递模型类型并核对实际加载身份。直接调用 `level3_case` 可追加 `--arm-family=rm27`，或用 `--print-arm-config --arm-family=rm27` 查询模型路径、关节名、挂载体与初始姿态。
 
 ## 构建和运行
 
@@ -10,7 +25,7 @@
 source /opt/ros/jazzy/setup.bash
 ./scripts/build.sh
 source install-integrated/setup.bash
-colcon test --build-base build-integrated --base-paths rm_tech_core_trajectory_solve/src/tech_core_planner rm_tech_core_trajectory_solve/src/rm26_engineering_arm_demo rm_tech_core_trajectory_solve/thrid_party/mujoco src/rm26_level3_validation --packages-select rm26_level3_validation
+colcon test --build-base build-integrated --base-paths rm_tech_core_trajectory_solve/src/tech_core_planner rm_tech_core_trajectory_solve/src/rm26_engineering_arm_demo rm_tech_core_trajectory_solve/thrid_party/mujoco src/rm27_heavy_arm_demo src/rm26_level3_validation --packages-select rm26_level3_validation
 colcon test-result --test-result-base build-integrated --verbose
 
 # 输出目录必须尚不存在。先运行 10 个检查案例，再运行 100 个正式案例。
@@ -22,9 +37,20 @@ install-integrated/rm26_level3_validation/bin/level3_batch browse --batch artifa
 
 # 从已完成的批次中选择案例，重新规划并打开查看器。
 install-integrated/rm26_level3_validation/bin/level3_batch replay --batch artifacts/level3-full --case case_0000
+
+# 打开机械臂伸展尺寸工具
+install-integrated/rm26_level3_validation/bin/arm_dimensions_gui
 ```
 
 运行前要安装 git-lfs 并执行 `git lfs pull`，以获取机械臂和场景的网格。工具会检查安装资源中未下载的 LFS 指针。运行环境需加载 colcon 的 `install/setup.bash`，MuJoCo 构建依赖参见仓库根目录 Readme。
+
+## 机械臂伸展尺寸工具
+
+`arm_dimensions_gui` 面向 RM27 重载机械臂，用滑块调整 J0–J6，或为每轴输入最小和最大角度（界面单位 °）；窗口会启动独立 RViz2 视图，显示 RM27 URDF 模型。关节姿态实时发布到 `/joint_states`；RViz 中青色线表示水平投影、橙色线表示高度，球形标记为 tool0 原点，文字显示 XY 与 Z 尺寸（mm）。尺寸原点的 X/Y 取 J1 关节轴心位置，Z 取 base 高度。末端位置由安装的 RM27 MJCF `tool0` site 经 MuJoCo 正运动学计算。项目 RM27 MJCF 当前将各关节限位设为 ±360°，这不代表实机机械限位；请先输入实际限位再搜索。初始姿态为 `[0, 1.39, -1.3, 0, 0, 0.3, 0] rad`。点击“计算两种极限姿态”会在当前七轴限位内分别搜索 tool0 水平投影最远和 Z 最高姿态，结果列出七个关节角，并可应用到 RViz 查看。全局搜索使用 SciPy 的差分进化和局部精修；结果依赖模型几何及输入限位。
+
+RViz 同时显示三个随关节运动的坐标系：`J6 roll (joint_7)` 是最后一个 roll 轴的 `link_7` 坐标系，`tool0` 是模型工具坐标系，`energy unit mount` 是规划器的能量单元安装坐标系。红、绿、蓝箭头分别表示 X、Y、Z 轴；球形尺寸标记位于 tool0 原点。滑块 J0–J6 对应模型 `joint_1`–`joint_7`。
+
+黄色线段及文字显示 J0–J6 的杆长：J0 取 yaw 到肩关节偏移的 XZ 投影，J1–J5 依次取 XZ、XZ、X、XZ、X 投影，与固定总长搜索一致；J6 是 `link_7` 到能量单元安装点的局部 X 方向距离。灰线显示未计入杆长的偏置。当前尺寸工具显示安装的原始 RM27 模型，而非搜索推荐的变体。
 
 `--config` 指定 JSON 配置；上层源码配置在 `src/rm26_level3_validation/config/default.json`。未指定时读取构建时安装的副本，修改源码配置后需重建或通过 `--config` 显式指定。可修改样本数量、快速子集数量、随机种子、每次预算、各维边界和装配系在基座系中的位姿。`--workers N` 控制并发数，默认 1；并发会改变运行负载及有墙钟预算的结果。每次运行都写入新的输出目录，不覆盖已有批次。
 
@@ -226,3 +252,45 @@ J4保留J5的局部Z偏置0.0245m，其后所有机构随J5平移。J4两端各0
 J6没有下一级旋转关节，生成模型增加固定子体 `variant_energy_mount`，其位置为裁切引起的负Z平移。批次自动向求解器传入 `--arm-attach-link=variant_energy_mount`，能量单元通过该子体挂载，原来的能量单元局部安装变换不变。因此能量单元、孔口工具点和夹爪远端一起平移，不能仅缩短网格而保留原工具点。清单记录挂载体及位移；求解器报告实际 `arm_attach_link`，与批次身份不一致时拒绝采信结果。原始、J1、J4和J5变体继续挂载到j6_link。
 
 运行时选择对应的 `--arm-variant src/rm26_level3_validation/config/arm_j4_short_20pct.json` 等配置；名称建议使用 `level3-full-j4-short-20pct-<时间戳>` 等格式。UI自动显示相应杆件及比例，所有身份/指纹/统计保存流程沿用。
+
+自适应 y 停车：`adaptive_y_parking` 为布尔值，当前默认配置显式设为 `true`。每个案例的实际场地 y 停车位置为核心场地 y + 配置停车 y + 网格 y；x/z 保持原计算，停车 yaw 保持配置值。核心转入基座系时仍应用停车 yaw 的逆旋转。旧配置省略该开关时为 false。模型通过 `arm_variant` 显式指定；`arm_model` 指纹和初始关节角由运行时所选模型生成并保存到批次配置。
+
+## RM27 固定总杆长搜索
+
+`rm27_length_search` 支持用户编号 J1–J5（模型 `link_2`–`link_6`）的轴向长度分配。J0（yaw 到第一个 pitch）、侧向安装偏置、夹爪与工具安装变换固定。总长误差不超过 1e-6 m。
+
+```bash
+source /opt/ros/jazzy/setup.bash
+source install-integrated/setup.bash
+install-integrated/rm26_level3_validation/bin/rm27_length_search \
+  --config src/rm26_level3_validation/config/default.json \
+  --executable install-integrated/rm26_level3_validation/bin/level3_case \
+  --output artifacts/rm27-fixed-total-search --workers 8
+```
+
+同一命令可续跑，完整案例和逐例已保存结果会复用。实验对配置、源模型及网格、可执行文件和搜索代码做哈希绑定；输入变化要求新输出目录，同一目录禁止并发写入。模型生成中断留下未完成快照时会停止并给出路径，需检查该候选目录后移除并续跑；已完成批次不覆盖。
+
+搜索依次执行 J1/J2 10%–90% 比例扫描（5 个百分点步长）、128 个联合组合和每段可行边界组合、局部细化。联合阶段每段为自身原长的 30%–200%；所有组合保持总长不变。局部细化在两条搜索线各分配最多 60 个新增候选，以 20/10/5 mm 转移步长探索，每个步长预留 20 个名额。几何保护区可能使某些比例不可行；无效方案写入 `invalid*.json`，不作为规划失败参与排名。
+
+杆件主轴分别取子关节偏移的 XZ、XZ、X、XZ、X 投影。近端/远端探索保护区分别为 30、25、18、25、6 mm；其余中段连续变形，视觉与碰撞同步。保护区是明确记录的仿真探索参数，不代表已验证的实机结构包络。质量惯量保留原值。
+
+初筛复用完整 50 任务集内均匀选取的 10 个任务、全部 9 个停车点及其自适应停车坐标，不重新采样。每例 30 秒，`--workers` 指定并行案例数（默认 1）；前五名和原始臂进行完整复核，前两名再重复一次。worker 数属于冻结的实验配置，普通续跑须保持一致。按停车点等权平均任务分、成功率、停车适应分、较小长度改动依次排名。未知进度在搜索排名中按 0 分保留分母，并单独记录 `unknown_count`；原有批次进度统计语义不变。
+
+运行期间可查看 `screen_ranking.csv`、候选批次 `summary.json` 和 `progress_statistics.json`；完成后生成 `REPORT.md`、`final_ranking.json`、`full_ranking.csv`、`case_comparison.json`、`j1_j2_scores.png`、`length_score_scatter.png` 和 `parking_scores.png`。推荐批次可使用现有 `level3_batch browse --batch ...` 浏览，模型快照位于该批次 `arm_model/`。
+
+RM27 变体使用 `model_family: "rm27"`、`stage: "pair"` 或 `"joint"`，每项修改为 `{"link": "link_2", "method": "set_length", "target_length_m": 0.48}`。需成组补偿长度以守恒；未列出的杆件保持原长。RM26 的 `remove_middle` / `stretch_axial` 配置继续支持。
+
+### RM27 六段缩短 147 mm 搜索
+
+`rm27_short_length_search` 新建独立实验，J1–J6 的目标总长为原始六段总长减 147 mm；J0 保持不变。J6 是 `link_7` 到能量单元挂载原点的局部 X 距离，原长 135.5042231 mm。J6 改变时，夹爪视觉和碰撞网格变形，工具 site 和能量单元挂载一起沿 X 移动，unit 与 tool 相对变换保持不变。J6 两端保护区各 25 mm，仅用于仿真探索；质量和惯量保留原值。
+
+优先扫描 J1、J2、J6，再探索六段联合组合及局部细化。各段范围为原长的 30%–200% 并受保护区限制；六段总长误差不超过 0.001 mm。初筛、复核、排序及续跑保护沿用上节的规则；原始臂与 2026-11-10 推荐构型在当前配置下单独完整复核作为对照。优先扫描图显示 J1/J2 和任务分，完整候选的 J6 长度见 CSV。
+
+```bash
+source /opt/ros/jazzy/setup.bash
+source install-integrated/setup.bash
+install-integrated/rm26_level3_validation/bin/rm27_short_length_search \
+  --config src/rm26_level3_validation/config/default.json \
+  --executable install-integrated/rm26_level3_validation/bin/level3_case \
+  --output artifacts/rm27-short-147mm-search-20261111 --workers 8
+```

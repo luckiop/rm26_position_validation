@@ -8,5 +8,5 @@ if [[ ! -f "$source_dir/src/tech_core_planner/package.xml" ]]; then
 fi
 cd "$root"
 colcon build --symlink-install --build-base build-integrated --install-base install-integrated \
-  --base-paths "$source_dir/src/tech_core_planner" "$source_dir/src/rm26_engineering_arm_demo" "$source_dir/thrid_party/mujoco" "$root/src/rm26_level3_validation" \
+  --base-paths "$source_dir/src/tech_core_planner" "$source_dir/src/rm26_engineering_arm_demo" "$source_dir/thrid_party/mujoco" "$root/src/rm27_heavy_arm_demo" "$root/src/rm26_level3_validation" \
   --packages-up-to rm26_level3_validation "$@"
