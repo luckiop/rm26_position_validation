@@ -36,3 +36,7 @@ install-integrated/rm26_level3_validation/bin/arm_dimensions_gui  # 滑块调姿
 脚本直接构建子模块与上层验证包，不复制或修改子模块源码。构建时请按子模块的文档安装依赖；首次运行可能下载 MuJoCo。默认使用仅保留 J0–J6 机械臂及空基座坐标系的模型；车辆其余连杆和碰撞体不参与规划。旧批次的案例重算使用当前模型，结果可能不同，建议重新运行批次。`check_self_collision` 可控制机械臂自碰撞检查，默认 `true`；设为 `false` 可关闭，核心及能量单元碰撞仍检查。`check_gripper_pillar_collision` 控制夹爪与装配柱碰撞检查；当前配置为 `false`。车辆默认绕场地世界 Z 轴旋转 −90°，可通过 `parking_yaw_world_rad`（rad）调整。修改 `src/rm26_level3_validation/config/default.json` 后，按示例使用 `--config` 指定该文件；不指定时使用构建时安装的配置副本。完整参数、结果语义、键鼠控制和诊断方式见 [验证工具说明](src/rm26_level3_validation/README.md)。
 
 当前基线的真实模型集成测试仍未通过：参考案例报告机械臂与核心碰撞，尚未验证完整 Q 区间成功规划。批量结果可能全部失败，应根据实际场景检查模型、抓持关系和坐标配置；不能将失败候选当作成功轨迹。
+
+## 摄像机视野
+
+MuJoCo 查看器新增粉色相机位置与视锥，`V` 或左上提示切换相机视野，`H` 开关标记，`X/Y/Z`（Shift 反向）调整安装位置。新增 `level3_batch visibility` 可直接评估保存轨迹，`visibility-compare` 比较不同构型；配置示例、命令及评分语义见[摄像机说明](src/rm26_level3_validation/README.md#摄像机视野与能量单元遮挡评估)。

@@ -294,3 +294,49 @@ install-integrated/rm26_level3_validation/bin/rm27_short_length_search \
   --executable install-integrated/rm26_level3_validation/bin/level3_case \
   --output artifacts/rm27-short-147mm-search-20261111 --workers 8
 ```
+
+## 摄像机视野与能量单元遮挡评估
+
+查看器默认显示粉色相机位置、朝向箭头和视锥。按 `V` 或点击左上方视角提示切换自由视角／相机视野；再次切换恢复原自由视角。`H` 开关位置标记，`PageUp/PageDown` 浏览接近／平移的离散采样帧，空格或普通轨迹控制返回连续轨迹浏览，`X/Y/Z` 将相机沿基座对应轴移动 `0.01 m`，按住 Shift 反向移动。相机视野保持 4:3，禁用鼠标改变相机姿态；相机位置相对基座固定，每帧 yaw/pitch 跟踪当前装配柱前端中心。标记、幽灵和辅助线不进入光学画面或遮挡计算。
+
+相机配置示例为 `config/camera_example.json`，其中 `[0, 0, 0.3] m` 仅为可运行示例，请替换为安装位置。图像为 640×480，139°暂按对角线视场角解释，JSON 使用 `diagonal_fov_rad`。使用理想针孔模型，主点居中、方形像素；未模拟镜头畸变、曝光、景深或失焦，12 毫米等效焦距、f/2.8、0.6 米至无穷远对焦规格不作为额外投影约束。
+
+```bash
+# 浏览／重算时传入相机安装参数；也可不传，使用示例位置。
+install-integrated/rm26_level3_validation/bin/level3_batch browse \
+  --batch artifacts/<批次> \
+  --camera-config src/rm26_level3_validation/config/camera_example.json
+
+# 读取冻结模型及保存的轨迹，不重新规划；输出目录必须不存在。
+install-integrated/rm26_level3_validation/bin/level3_batch visibility \
+  --batch artifacts/<批次> \
+  --camera-config src/rm26_level3_validation/config/camera_example.json \
+  --output artifacts/<视野评估>
+
+# 单例评估后打开同一查看器；添加 --images 导出 RGB 和遮挡掩膜 PPM。
+install-integrated/rm26_level3_validation/bin/level3_batch visibility \
+  --batch artifacts/<批次> --case case_0000_p00 \
+  --camera-config src/rm26_level3_validation/config/camera_example.json \
+  --output artifacts/<单例视野评估> --gui --images
+
+# 在共同完整且模型可核验的任务／停车点上比较构型。
+install-integrated/rm26_level3_validation/bin/level3_batch visibility-compare \
+  --evaluations artifacts/<原始臂视野> artifacts/<变体视野> \
+  --output artifacts/<对比结果>
+```
+
+离屏渲染仍需要 OpenGL 上下文；无桌面时可在命令前加 `xvfb-run -a`。`visibility --gui` 仅允许单例。`--trajectory-dir <目录>` 也要求指定 case，可显式评估 replay 或 `interactive/edit_N` 结果，使用其中 `core_pose.json`，并核对所记录模型身份。
+
+默认优先读取 `prefix.csv`，否则 `candidate.csv`，最后 `collision_diagnostic.csv`；不拼接 Q 分支。严格校验批次冻结模型和网格，使用实际挂载关系及逐例自适应停车位姿。旧批次缺少模型身份时，必须显式添加 `--allow-legacy-model`，结果标为不可核验，不进入严格构型比较。
+
+接近 `Approach` 和平移 `Lift` 默认各 10 帧，由相机配置的 `samples` 调整。时间严格递增时按阶段时间等间隔采样，复用规划器三次插值；否则按关节路径长度采样。均包含阶段首末状态，单节点只计算一帧。后续阶段存在时才判定当前阶段已完整到达边界；失败候选与诊断轨迹仍保留其部分评分。
+
+每帧分母为能量单元单独渲染时在画面内的投影像素，分子为深度上被机械臂（含夹爪）挡住的像素。核心遮挡单独计算，可与机械臂遮挡重叠，不可直接相加。完全出画或没有目标像素时数值为空；`touches_border` 是投影触及画面边界的保守标记，提示可能部分出画，不表示画外面积比例。地面不归为机械臂遮挡物。
+
+各案例目录包含 `inputs.json`、`frames.csv`、`visibility.json`、`evaluation.log`，批次包含 `camera_config.json`、`results.json/csv`、`summary.json`。输入记录模型指纹、轨迹 SHA256、实际 case 和执行文件 SHA256。`frames.csv` 保存关节、机构状态和逐帧指标；无时间化候选的时间列为空。`available_mean` 是已有有效帧均值；`case_occlusion` 仅在验收轨迹两阶段完整且采样帧全部有效时填写。阶段最大值及最差帧也保存。候选和诊断始终单列，不改变规划进度或搜索排名。
+
+相机视野右侧显示 `Current frame occlusion`（当前帧遮挡率）和 `Overall occlusion`（接近＋平移所有有效采样帧的均值），部分轨迹另行标记；左侧保留操作提示。调整相机重新计算均值；编辑核心清除旧轨迹后显示不可用，等待新轨迹。交互调整不会覆盖原批次或自动修改相机配置文件，正式对比请将最终 XYZ 写入独立配置。
+
+`visibility-compare` 要求相机配置一致，并核对共同任务的核心场地位姿和实际停车位姿，输出 `paired_cases.csv`、`comparison.json`，报告交集数量和各构型均值。无共同完整案例时均值为空；不会把失败或缺测当成低遮挡。
+
+相机视野默认高亮：红色为实际挡住能量单元的机械臂表面区域，黄色轮廓／斜纹透视标记被机械臂遮挡的能量单元投影，绿色为可见能量单元区域。遮挡物和被遮挡物在画面中投影重合，因此以填充色与轮廓斜纹区分。`G` 开关高亮；不改变遮挡率。`--images` 额外导出 `_highlight.ppm`，原始 RGB 和掩膜仍保留。

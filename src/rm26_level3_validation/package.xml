@@ -8,6 +8,8 @@
   <buildtool_depend>cmake</buildtool_depend>
   <depend>tech_core_planner</depend>
   <depend>mujoco</depend>
+  <depend>libglfw3-dev</depend>
+  <depend>libgl-dev</depend>
   <depend>rm26_engineering_arm_demo</depend>
   <depend>rm27_heavy_arm_demo</depend>
   <exec_depend>python3</exec_depend>

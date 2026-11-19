@@ -6,6 +6,7 @@
 #include <tech_core_planner/planner.hpp>
 
 #include <mujoco/mujoco.h>
+#include "visualization/visibility_evaluation.hpp"
 
 #include <algorithm>
 #include <memory>
@@ -180,6 +181,8 @@ void write_trajectory(const std::filesystem::path & path, const tcp::Trajectory 
 int main(int argc, char ** argv)
 {
   try {
+    std::filesystem::path visibility_track;
+    bool visibility = false;
     std::filesystem::path arm_model_path;
     std::string arm_attach_link;
     std::string arm_family = "rm26";
@@ -188,7 +191,10 @@ int main(int argc, char ** argv)
     bool disable_gripper_pillar_collision = false;
     while (argc > 1) {
       const std::string option(argv[argc - 1]);
-      if (option == "--disable-self-collision") {disable_self_collision = true;}
+      if (option.rfind("--visibility-trajectory=", 0) == 0) {
+        visibility = true; visibility_track = option.substr(24);
+      }
+      else if (option == "--disable-self-collision") {disable_self_collision = true;}
       else if (option == "--disable-gripper-pillar-collision") {disable_gripper_pillar_collision = true;}
       else if (option.rfind("--j1-max-from-vertical-rad=", 0) == 0) {
         j1_max_from_vertical_rad = number(option.substr(27).c_str());
@@ -301,6 +307,24 @@ int main(int argc, char ** argv)
     if (argc == 15 || argc == 21) {config.arm.parking_yaw_world = number(argv[argc - 1]);}
     config.headless = gui == "0";
     config.interactive = gui == "1";
+    if (visibility) {
+      if (const char * saved_start = std::getenv("TECH_CORE_CAMERA_START")) {
+        std::istringstream values(saved_start);
+        for (Eigen::Index index = 0; index < request.start.size(); ++index) {
+          if (!(values >> request.start[index]) || !std::isfinite(request.start[index])) {
+            throw std::runtime_error("invalid saved initial joints");
+          }
+        }
+      }
+      tcp::PlanningScene scene(config.arm);
+      const auto configured = scene.configure(request.scene);
+      if (configured.code != tcp::StatusCode::Ok) {throw std::runtime_error(configured.message);}
+      const auto snapshot = tcp::internal::SceneSnapshotAccess::model(scene);
+      const auto frame = tcp::internal::SceneSnapshotAccess::request(scene, request);
+      tcp::internal::evaluate_visibility(snapshot, frame, config.arm.planning_joints,
+        visibility_track, output, gui == "1");
+      return 0;
+    }
     tcp::Planner planner(config);
     const auto j1_limits = config.arm.joint_limits.find(elevation_joint);
     const auto solve = [&](const std::filesystem::path & output, std::size_t revision) {

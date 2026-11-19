@@ -1068,8 +1068,33 @@ def main():
     replay.add_argument('--case', required=True)
     browser = sub.add_parser('browse', help='打开批次案例浏览窗口')
     browser.add_argument('--batch', type=Path, help='批次目录；默认打开 artifacts 中最近更新的批次')
+    visibility = sub.add_parser('visibility', help='评估保存轨迹的相机视野，不重新规划')
+    visibility.add_argument('--batch', type=Path, required=True)
+    visibility.add_argument('--camera-config', type=Path, required=True)
+    visibility.add_argument('--output', type=Path, required=True)
+    visibility.add_argument('--case')
+    visibility.add_argument('--trajectory-dir', type=Path)
+    visibility.add_argument('--gui', action='store_true')
+    visibility.add_argument('--images', action='store_true')
+    visibility.add_argument('--allow-legacy-model', action='store_true')
+    comparison = sub.add_parser('visibility-compare', help='在共同有效任务上比较构型视野')
+    comparison.add_argument('--evaluations', type=Path, nargs='+', required=True)
+    comparison.add_argument('--output', type=Path, required=True)
+    for command_parser in (browser, replay):
+        command_parser.add_argument('--camera-config', type=Path)
     args = parser.parse_args()
+    if getattr(args, 'camera_config', None) is not None:
+        from camera_visibility import camera_config, camera_environment
+        os.environ.update(camera_environment(camera_config(args.camera_config)))
     executable = Path(__file__).absolute().parent / 'level3_case'
+    if args.command == 'visibility-compare':
+        from camera_visibility import compare_evaluations
+        compare_evaluations(args.evaluations, args.output, write_json)
+        return
+    if args.command == 'visibility':
+        from camera_visibility import evaluate_batch
+        evaluate_batch(args, executable, case_command, verify_arm, write_json)
+        return
     if args.command == 'browse':
         selected_batch = args.batch if args.batch is not None else latest_batch()
         print(f'打开批次：{selected_batch.resolve()}', flush=True)

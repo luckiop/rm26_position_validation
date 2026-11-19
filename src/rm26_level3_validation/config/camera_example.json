@@ -1,0 +1,7 @@
+{
+  "position_base_m": [-0.28, 0.183, 0.532],
+  "width": 640,
+  "height": 480,
+  "diagonal_fov_rad": 2.426007660272118,
+  "samples": {"Approach": 10, "Lift": 10}
+}

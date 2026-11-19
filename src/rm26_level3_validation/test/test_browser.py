@@ -18,6 +18,7 @@ with tempfile.TemporaryDirectory() as tmp:
     case = cases[0]
     config = json.loads((root_dir / 'config/default.json').read_text())
     # The grid fixture expects 100 cases regardless of the user's batch size.
+    config['adaptive_y_parking'] = False  # Fixture asserts fixed parking offsets.
     config['parking_yaw_world_rad'] = -1.5707963267948966
     config['check_self_collision'] = True
     config['check_gripper_pillar_collision'] = True
